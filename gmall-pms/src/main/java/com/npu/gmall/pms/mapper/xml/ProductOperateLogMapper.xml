@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.npu.gmall.pms.mapper.ProductOperateLogMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, product_id, price_old, price_new, sale_price_old, sale_price_new, gift_point_old, gift_point_new, use_point_limit_old, use_point_limit_new, operate_man, create_time
+    </sql>
+
+</mapper>

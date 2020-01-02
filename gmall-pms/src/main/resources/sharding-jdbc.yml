@@ -1,0 +1,18 @@
+dataSources:
+  db_master: !!com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.jdbc.Driver
+    jdbcUrl: jdbc:mysql://192.168.220.128:3307/gmall_pms?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: root
+  db_slave: !!com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.jdbc.Driver
+    jdbcUrl: jdbc:mysql://192.168.220.128:3316/gmall_pms?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: root
+masterSlaveRule:
+  name: db_ms
+  masterDataSourceName: db_master
+  slaveDataSourceNames: [db_slave]
+  ###注意，这份文档直接从官网复制的。!!后面是DataSource的实现类全类名不能省略。
+  ###多个slave加多份db_slaveXX配置即可，在slaveDataSourceNames列举这些slaver
+
