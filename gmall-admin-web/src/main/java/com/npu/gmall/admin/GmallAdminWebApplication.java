@@ -11,6 +11,13 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  *      2）、用户给我提交的封装成VO往下传
  *      request--->提交的vo；
  *      response--->返回的vo；
+ *@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+ * 1、不进行数据源的自动配置
+ *
+ * 如果导入的依赖，引入一个自动配置场景
+ * 1、这个场景自动配置默认生效
+ * 2、如果不想配置 1.引入的时候排除场景依赖  2.排除调这个场景的自动配置类
+ *
  */
 @EnableDubbo
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})

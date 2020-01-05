@@ -10,20 +10,28 @@ import com.npu.gmall.to.CommonResult;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 后台用户管理
+ * SpringMVC支持使用JSR303方式进行校验
+ * 使用JSR303的三大步
+ * 1、给需要校验数据的javaBean上标注校验注解
+ * 2、告诉SpringBoot，这个需要校验 @Valid 声明需要校验 SpringMVC进入方法前就会校验，如果校验出错，直接返回错误，不执行controller
+ * 3、如何感知校验成功还是失败；只需要给开启了校验的javaBean参数后面，紧跟一个BindingResult对象就可以获取到校验结果,只要有BindingResult，即使校验错了，方法也会执行。我们需要手动处理。
  */
+@Slf4j
 @CrossOrigin
 @RestController
 @Api(tags = "AdminController", description = "后台用户管理")
@@ -39,12 +47,29 @@ public class UmsAdminController {
     @Autowired
     JwtTokenUtil jwtTokenUtil;
 
+    /**
+     * 1、注册成功返回用户的所有信息：{code，message，data：{username，icon，email}}
+     * 2、数据校验失败：{code，message，data}
+     * @param umsAdminParam
+     * @param result
+     * @return
+     */
     @ApiOperation(value = "用户注册")
     @PostMapping(value = "/register")
-    public Object register(@RequestBody UmsAdminParam umsAdminParam, BindingResult result) {
+    public Object register(@Valid @RequestBody UmsAdminParam umsAdminParam,BindingResult result) {
         Admin admin = null;
         //TODO 完成注册功能
-
+//        int errorCount = result.getErrorCount();
+//        if(errorCount>0) {
+//            List<FieldError> fieldErrors = result.getFieldErrors();
+//            fieldErrors.forEach(fieldError -> {
+//                String field = fieldError.getField();
+//                log.debug("属性:{},传来的值是:{},校验出错。出错的提示消息:{}",field,fieldError.getRejectedValue(),fieldError.getDefaultMessage());
+//            });
+//            return new CommonResult().validateFailed(result);
+//        }
+        log.debug("需要注册的用户详情:{},校验错误数:{}",umsAdminParam);
+        int a=10/0;
         return new CommonResult().success(admin);
     }
 

@@ -39,6 +39,11 @@
         <artifactId>hibernate-validator</artifactId>
         <version>5.4.0.Final</version>
     </dependency>
+    <dependency>
+        <groupId>net.logstash.logback</groupId>
+        <artifactId>logstash-logback-encoder</artifactId>
+        <version>5.3</version>
+    </dependency>
 </dependencies>
 
 </project>
