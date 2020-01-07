@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.npu.gmall</groupId>
-    <artifactId>gmall-pms</artifactId>
+    <artifactId>gmall-search</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>gmall-pms</name>
-    <description>Demo project for Spring Boot</description>
+    <name>gmall-search</name>
+    <description>检索服务-es检索服务</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -25,6 +25,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.npu.gmall</groupId>
+            <artifactId>gmall-api</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -34,19 +40,6 @@
                     <artifactId>junit-vintage-engine</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.npu.gmall</groupId>
-            <artifactId>gmall-api</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
         <dependency>
             <groupId>io.searchbox</groupId>

@@ -29,3 +29,12 @@
 /gmall-ums/mvnw
 /gmall-ums/mvnw.cmd
 /src/
+/gmall-search/mvnw.cmd
+/gmall-search/mvnw
+/gmall-search/.mvn/
+/gmall-search/HELP.md
+/gmall-shop-portal/mvnw
+/gmall-shop-portal/mvnw.cmd
+/gmall-shop-portal/HELP.md
+/gmall-shop-portal/.mvn/
+/gmall-shop-portal/.gitignore

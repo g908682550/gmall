@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.npu.gmall.constant.EsConstant;
 import com.npu.gmall.pms.entity.*;
 import com.npu.gmall.pms.mapper.*;
 import com.npu.gmall.pms.service.ProductService;
@@ -14,6 +15,10 @@ import com.npu.gmall.to.es.EsSkuProductInfo;
 import com.npu.gmall.vo.PageInfoVo;
 import com.npu.gmall.vo.product.PmsProductParam;
 import com.npu.gmall.vo.product.PmsProductQueryParam;
+import io.searchbox.client.JestClient;
+import io.searchbox.core.Delete;
+import io.searchbox.core.DocumentResult;
+import io.searchbox.core.Index;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +28,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,13 +37,18 @@ import java.util.List;
  * 商品信息 服务实现类
  * </p>
  *
- * @author Lfy
+ * @author gy
  * @since 2020-01-02
+ *
+ * 查询要多试几次，增删改快速失败。
  */
 @Slf4j
 @Service
 @Component
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> implements ProductService {
+
+    @Autowired
+    JestClient jestClient;
 
     @Autowired
     ProductMapper productMapper;
@@ -62,75 +73,140 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         return productMapper.selectById(id);
     }
 
+    /**
+     * 改掉默认的mapping信息；
+     * 1）、改掉不分词的字段
+     * @param ids
+     * @param publishStatus
+     */
     @Override
     public void updatePublishStatus(List<Long> ids, Integer publishStatus) {
-        //1、对于数据库是修改商品的状态位
-        ids.forEach(id->{
-            Product productInfo = productInfo(id);
-            //该product默认所有属性为空
-            Product product = new Product();
-            product.setId(id);
-            product.setPublishStatus(publishStatus);
-            //mybatis-plus自带更新方法是哪个字段有值更哪个，其它不变
-            productMapper.updateById(product);
-            //1、复制基本信息
-            EsProduct esProduct=new EsProduct();
-            BeanUtils.copyProperties(productInfo,esProduct);
-            //2、复制sku信息,对于es要保存商品信息,还要查出这个商品的sku,给es保存
-            List<SkuStock> stocks = skuStockMapper.selectList(new QueryWrapper<SkuStock>().eq("product_id", id));
-            List<EsSkuProductInfo> esSkuProductInfos=new ArrayList<>(stocks.size());
-            /**
-             * 查出销售属性的名字,销售属性是动态的，他的值是不确定的，由es检索的时候动态聚合出这个商品所有销售属性的值
-             * select pa.* from pms_product_attribute pa where pa.product_attribute_category_id=
-             * (
-             * select pa.product_attribute_category_id
-             * from pms_product_attribute_value pav
-             * LEFT JOIN pms_product_attribute pa on pa.id=pav.product_attribute_id
-             * where pav.product_id=#{id} AND pa.type=0 LIMIT 1
-             * )and type=0 ORDER BY pa.sort DESC;
-             */
-            List<ProductAttribute> skuAttributeNames=productAttributeValueMapper.selectProductSaleAttrName(id);
-            stocks.forEach(skuStock -> {
-                EsSkuProductInfo info = new EsSkuProductInfo();
-                BeanUtils.copyProperties(skuStock,info);
-
-                //生成sku的特色标题
-                String subTitle=esProduct.getName();
-                if(StringUtils.isEmpty(skuStock.getSp1())) subTitle+=" "+skuStock.getSp1();
-                if(StringUtils.isEmpty(skuStock.getSp2())) subTitle+=" "+skuStock.getSp2();
-                if(StringUtils.isEmpty(skuStock.getSp3())) subTitle+=" "+skuStock.getSp3();
-                info.setSkuTitle(subTitle);
-                //查出sku所有销售属性对应的值,要统计数据库中这个sku有多少个值
-
-                List<EsProductAttributeValue> skuAttributeValues=new ArrayList<>();
-                for (int i = 0; i <skuAttributeNames.size() ; i++) {
-                    EsProductAttributeValue value = new EsProductAttributeValue();
-                    value.setName(value.getName());
-                    value.setProductId(id);
-                    value.setProductAttributeId(skuAttributeNames.get(i).getId());
-                    value.setType(skuAttributeNames.get(i).getType());
-                    //某个销售属性具体的值，查询商品的属性分类里面所有的属性的时候，按照sort字段排序好
-                    if(i==0){
-                        value.setValue(skuStock.getSp1());
-                    }else if(i==1){
-                        value.setValue(skuStock.getSp2());
-                    }else{
-                        value.setValue(skuStock.getSp3());
-                    }
-                }
-
-                info.setAttributeValues(skuAttributeValues);
-                esSkuProductInfos.add(info);
+        if(publishStatus==0){
+            //下架
+            ids.forEach(id->{
+                //改数据库状态
+                setProductPublishStatus(publishStatus, id);
+                //删es
+                deleteProductFromEs(id);
             });
-            esProduct.setSkuProductInfos(esSkuProductInfos);
-            /**
-             * 查出商品的属性及对应的值
-             * select pav.*,pa.`name`,type from pms_product_attribute_value pav LEFT JOIN pms_product_attribute pa ON pav.product_attribute_id=pa.id where pav.product_id=23 and pa.type=1
-             */
-            List<EsProductAttributeValue> attributeValues=productAttributeValueMapper.selectProductBaseAttributeAndValue(id);
-            //3、复制公共属性，即spu属性
-            esProduct.setAttrValueList(attributeValues);
+        }else{
+            //上架
+            ids.forEach(id->{
+                //改数据库状态
+                setProductPublishStatus(publishStatus, id);
+                //加es
+                saveProductToEs(id);
+            });
+        }
+    }
+
+    private void deleteProductFromEs(Long id) {
+        Delete delete = new Delete.Builder(id.toString()).index(EsConstant.PRODUCT_ES_INDEX).type(EsConstant.PRODUCT_INFO_ES_TYPE).id(id.toString()).build();
+        try {
+            DocumentResult execute = jestClient.execute(delete);
+            if(execute.isSucceeded()) log.error("商品：{}==》ES下架完成",id);
+            else {
+//                deleteProductFromEs(id);
+                log.error("商品：{}==》ES下架失败",id);
+            }
+        } catch (IOException e) {
+//            deleteProductFromEs(id);
+            log.error("商品：{}==》ES下架失败",id);
+        }
+    }
+
+    /**
+     * 给数据库插入数据
+     * 1）dubbo远程调入插入数据服务，可能经常超时。dubbo默认会重试，导致这个方法会被调用多次，可能导致数据库同样的数据有多个。
+     * 2）dubbo有自己默认的集群容错 failover/failfast/failsafe/failback/forking
+     * 给数据库做数据的，最好用dubbo的快速失败模式。我们手工重试
+     * @param id
+     */
+    private void saveProductToEs(Long id) {
+        //查出商品基本信息
+        Product productInfo = productInfo(id);
+        //1、复制基本信息
+        EsProduct esProduct=new EsProduct();
+        BeanUtils.copyProperties(productInfo,esProduct);
+        //2、复制sku信息,对于es要保存商品信息,还要查出这个商品的sku,给es保存
+        List<SkuStock> stocks = skuStockMapper.selectList(new QueryWrapper<SkuStock>().eq("product_id", id));
+        List<EsSkuProductInfo> esSkuProductInfos=new ArrayList<>(stocks.size());
+        /**
+         * 查出销售属性的名字,销售属性是动态的，他的值是不确定的，由es检索的时候动态聚合出这个商品所有销售属性的值
+         * select pa.* from pms_product_attribute pa where pa.product_attribute_category_id=
+         * (
+         * select pa.product_attribute_category_id
+         * from pms_product_attribute_value pav
+         * LEFT JOIN pms_product_attribute pa on pa.id=pav.product_attribute_id
+         * where pav.product_id=#{id} AND pa.type=0 LIMIT 1
+         * )and type=0 ORDER BY pa.sort DESC;
+         */
+        List<ProductAttribute> skuAttributeNames=productAttributeValueMapper.selectProductSaleAttrName(id);
+        stocks.forEach(skuStock -> {
+            EsSkuProductInfo info = new EsSkuProductInfo();
+            BeanUtils.copyProperties(skuStock,info);
+
+            //生成sku的特色标题
+            String subTitle=esProduct.getName();
+            if(StringUtils.isEmpty(skuStock.getSp1())) subTitle+=" "+skuStock.getSp1();
+            if(StringUtils.isEmpty(skuStock.getSp2())) subTitle+=" "+skuStock.getSp2();
+            if(StringUtils.isEmpty(skuStock.getSp3())) subTitle+=" "+skuStock.getSp3();
+            info.setSkuTitle(subTitle);
+            //查出sku所有销售属性对应的值,要统计数据库中这个sku有多少个值
+
+            List<EsProductAttributeValue> skuAttributeValues=new ArrayList<>();
+            for (int i = 0; i <skuAttributeNames.size() ; i++) {
+                EsProductAttributeValue value = new EsProductAttributeValue();
+                value.setName(value.getName());
+                value.setProductId(id);
+                value.setProductAttributeId(skuAttributeNames.get(i).getId());
+                value.setType(skuAttributeNames.get(i).getType());
+                //某个销售属性具体的值，查询商品的属性分类里面所有的属性的时候，按照sort字段排序好
+                if(i==0){
+                    value.setValue(skuStock.getSp1());
+                }else if(i==1){
+                    value.setValue(skuStock.getSp2());
+                }else{
+                    value.setValue(skuStock.getSp3());
+                }
+                skuAttributeValues.add(value);
+            }
+
+            info.setAttributeValues(skuAttributeValues);
+            esSkuProductInfos.add(info);
         });
+        esProduct.setSkuProductInfos(esSkuProductInfos);
+        /**
+         * 查出商品的属性及对应的值
+         * select pav.*,pa.`name`,type from pms_product_attribute_value pav LEFT JOIN pms_product_attribute pa ON pav.product_attribute_id=pa.id where pav.product_id=23 and pa.type=1
+         */
+        List<EsProductAttributeValue> attributeValues=productAttributeValueMapper.selectProductBaseAttributeAndValue(id);
+        //3、复制公共属性，即spu属性
+        esProduct.setAttrValueList(attributeValues);
+
+        //把商品保存在es中
+        try {
+            Index build = new Index.Builder(esProduct).index(EsConstant.PRODUCT_ES_INDEX).id(id.toString()).type(EsConstant.PRODUCT_INFO_ES_TYPE).build();
+            DocumentResult execute = jestClient.execute(build);
+            boolean succeeded = execute.isSucceeded();
+            if(succeeded) log.info("ES中,id为{}商品上架完成",id);
+            else{
+                log.info("ES中,{}号商品未保存成功，开始重试",id);
+//                saveProductToEs(id);
+            }
+        } catch (IOException e) {
+            log.error("ES中，id为{}商品数据保存异常,{}",id,e.getMessage());
+//            saveProductToEs(id);
+        }
+    }
+
+    public void setProductPublishStatus(Integer publishStatus, Long id) {
+        //该product默认所有属性为空
+        Product product = new Product();
+        product.setId(id);
+        product.setPublishStatus(publishStatus);
+        //mybatis-plus自带更新方法是哪个字段有值更哪个，其它不变
+        productMapper.updateById(product);
     }
 
     @Override
