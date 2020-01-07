@@ -8,6 +8,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.npu.gmall.pms.entity.*;
 import com.npu.gmall.pms.mapper.*;
 import com.npu.gmall.pms.service.ProductService;
+import com.npu.gmall.to.es.EsProduct;
+import com.npu.gmall.to.es.EsProductAttributeValue;
+import com.npu.gmall.to.es.EsSkuProductInfo;
 import com.npu.gmall.vo.PageInfoVo;
 import com.npu.gmall.vo.product.PmsProductParam;
 import com.npu.gmall.vo.product.PmsProductQueryParam;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,6 +56,82 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     //当前线程共享同样的数据,同一次调用，上面的方法下面要用，就可以用ThreadLocal共享数据
     ThreadLocal<Long> threadLocal=new ThreadLocal<>();
+
+    @Override
+    public Product productInfo(Long id) {
+        return productMapper.selectById(id);
+    }
+
+    @Override
+    public void updatePublishStatus(List<Long> ids, Integer publishStatus) {
+        //1、对于数据库是修改商品的状态位
+        ids.forEach(id->{
+            Product productInfo = productInfo(id);
+            //该product默认所有属性为空
+            Product product = new Product();
+            product.setId(id);
+            product.setPublishStatus(publishStatus);
+            //mybatis-plus自带更新方法是哪个字段有值更哪个，其它不变
+            productMapper.updateById(product);
+            //1、复制基本信息
+            EsProduct esProduct=new EsProduct();
+            BeanUtils.copyProperties(productInfo,esProduct);
+            //2、复制sku信息,对于es要保存商品信息,还要查出这个商品的sku,给es保存
+            List<SkuStock> stocks = skuStockMapper.selectList(new QueryWrapper<SkuStock>().eq("product_id", id));
+            List<EsSkuProductInfo> esSkuProductInfos=new ArrayList<>(stocks.size());
+            /**
+             * 查出销售属性的名字,销售属性是动态的，他的值是不确定的，由es检索的时候动态聚合出这个商品所有销售属性的值
+             * select pa.* from pms_product_attribute pa where pa.product_attribute_category_id=
+             * (
+             * select pa.product_attribute_category_id
+             * from pms_product_attribute_value pav
+             * LEFT JOIN pms_product_attribute pa on pa.id=pav.product_attribute_id
+             * where pav.product_id=#{id} AND pa.type=0 LIMIT 1
+             * )and type=0 ORDER BY pa.sort DESC;
+             */
+            List<ProductAttribute> skuAttributeNames=productAttributeValueMapper.selectProductSaleAttrName(id);
+            stocks.forEach(skuStock -> {
+                EsSkuProductInfo info = new EsSkuProductInfo();
+                BeanUtils.copyProperties(skuStock,info);
+
+                //生成sku的特色标题
+                String subTitle=esProduct.getName();
+                if(StringUtils.isEmpty(skuStock.getSp1())) subTitle+=" "+skuStock.getSp1();
+                if(StringUtils.isEmpty(skuStock.getSp2())) subTitle+=" "+skuStock.getSp2();
+                if(StringUtils.isEmpty(skuStock.getSp3())) subTitle+=" "+skuStock.getSp3();
+                info.setSkuTitle(subTitle);
+                //查出sku所有销售属性对应的值,要统计数据库中这个sku有多少个值
+
+                List<EsProductAttributeValue> skuAttributeValues=new ArrayList<>();
+                for (int i = 0; i <skuAttributeNames.size() ; i++) {
+                    EsProductAttributeValue value = new EsProductAttributeValue();
+                    value.setName(value.getName());
+                    value.setProductId(id);
+                    value.setProductAttributeId(skuAttributeNames.get(i).getId());
+                    value.setType(skuAttributeNames.get(i).getType());
+                    //某个销售属性具体的值，查询商品的属性分类里面所有的属性的时候，按照sort字段排序好
+                    if(i==0){
+                        value.setValue(skuStock.getSp1());
+                    }else if(i==1){
+                        value.setValue(skuStock.getSp2());
+                    }else{
+                        value.setValue(skuStock.getSp3());
+                    }
+                }
+
+                info.setAttributeValues(skuAttributeValues);
+                esSkuProductInfos.add(info);
+            });
+            esProduct.setSkuProductInfos(esSkuProductInfos);
+            /**
+             * 查出商品的属性及对应的值
+             * select pav.*,pa.`name`,type from pms_product_attribute_value pav LEFT JOIN pms_product_attribute pa ON pav.product_attribute_id=pa.id where pav.product_id=23 and pa.type=1
+             */
+            List<EsProductAttributeValue> attributeValues=productAttributeValueMapper.selectProductBaseAttributeAndValue(id);
+            //3、复制公共属性，即spu属性
+            esProduct.setAttrValueList(attributeValues);
+        });
+    }
 
     @Override
     public PageInfoVo productPageInfo(PmsProductQueryParam param) {

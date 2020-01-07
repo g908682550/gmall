@@ -6,5 +6,17 @@
     <sql id="Base_Column_List">
         id, product_id, product_attribute_id, value
     </sql>
+    <select id="selectProductBaseAttributeAndValue" resultType="com.npu.gmall.to.es.EsProductAttributeValue">
+        select pav.*,pa.`name`,pa.type from pms_product_attribute_value pav LEFT JOIN pms_product_attribute pa ON pav.product_attribute_id=pa.id where pav.product_id=#{id} and pa.type=1
+    </select>
+    <select id="selectProductSaleAttrName" resultType="com.npu.gmall.pms.entity.ProductAttribute">
+        select pa.* from pms_product_attribute pa where pa.product_attribute_category_id=
+        (
+        select pa.product_attribute_category_id
+        from pms_product_attribute_value pav
+        LEFT JOIN pms_product_attribute pa on pa.id=pav.product_attribute_id
+        where pav.product_id=#{id} AND pa.type=0 LIMIT 1
+        )and type=0 ORDER BY pa.sort DESC;
+    </select>
 
 </mapper>
