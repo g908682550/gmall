@@ -6,6 +6,10 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 
 import javax.xml.crypto.Data;
 
+/**
+ * 数组类型的数据提交，需要同名属性多几个值就行，如
+ * "http://localhost:8080/search?catelog3=19&catelog3=20&catelog3=30&keyword=%E6%89%8B%E6%9C%BA"
+ */
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 public class GmallShopPortalApplication {
 
