@@ -1,5 +1,8 @@
 package com.npu.gmall.demo.service;
 
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.client.RedisClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -21,6 +24,29 @@ public class RedisIncrService {
 
     @Autowired
     JedisPool jedisPool;
+
+    @Autowired
+    RedissonClient redisson;
+
+    public void useRedissonForLock(){
+        //获取一把锁，只要各个代码用的锁名一样即可
+        RLock lock = redisson.getLock("lock");
+        try {
+            //lock.lock(),感知别人删锁，发布订阅模式（实时感知），lock监听redis，redis一旦删锁，就尝试去加锁。不是自旋式
+            lock.lock(3,TimeUnit.SECONDS);//加锁带自动解锁
+            Jedis jedis = jedisPool.getResource();
+            String num=jedis.get("num");
+            Integer i=Integer.parseInt(num);
+            i=i+1;
+            jedis.set("num",i.toString());
+            jedis.close();
+        } finally {
+            lock.unlock();//解锁
+        }
+    }
+
+
+
 
     /**
      * synchronized和ReentrantLock单机条件下可以用，分布式会出问题

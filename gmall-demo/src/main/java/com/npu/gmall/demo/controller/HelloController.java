@@ -1,6 +1,7 @@
 package com.npu.gmall.demo.controller;
 
 import com.npu.gmall.demo.service.RedisIncrService;
+import com.npu.gmall.demo.service.RedissonLockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,5 +24,12 @@ public class HelloController {
         redisIncrService.incrDistribute();
         return "ok";
     }
+
+    @GetMapping("/incr3")
+    public String incr3(){
+        redisIncrService.useRedissonForLock();
+        return "ok";
+    }
+
 
 }

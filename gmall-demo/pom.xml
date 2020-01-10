@@ -29,7 +29,6 @@
             <version>3.0.1</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-pool2 -->
         <!-- jedis需要导入该依赖可用-->
         <dependency>
             <groupId>org.apache.commons</groupId>
