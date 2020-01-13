@@ -40,7 +40,7 @@ public class CartItem implements Serializable {
 
     private BigDecimal totalPrice;//当前购物项总价
     @Getter
-    private Boolean check;//购物项的选中状况
+    private boolean check=true;//购物项的选中状况
 
     public BigDecimal getTotalPrice(){
         BigDecimal bigDecimal = price.multiply(new BigDecimal(count.toString()));

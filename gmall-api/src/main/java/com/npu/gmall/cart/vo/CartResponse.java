@@ -11,6 +11,6 @@ public class CartResponse implements Serializable {
 
     private CartItem cartItem;//某一项
 
-    private String cartKey;
+    private String cartKey;//临时生成的
 
 }
