@@ -115,7 +115,6 @@ public class CartController {
                                   @RequestParam(value = "cartKey",required = false) String cartKey,
                                   @RequestParam(value = "accessToken",required = false) String accessToken){
         CartResponse cartResponse=cartService.checkCartItems(skuIds,ops,cartKey,accessToken);
-
         return new CommonResult().success(cartResponse);
     }
 
