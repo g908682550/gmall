@@ -4,6 +4,8 @@ package com.npu.gmall.cart.service;
 import com.npu.gmall.cart.vo.CartItem;
 import com.npu.gmall.cart.vo.CartResponse;
 
+import java.util.List;
+
 /**
  * 购物车服务
  */
@@ -48,4 +50,18 @@ public interface CartService {
      * @return
      */
     CartResponse checkCartItems(String skuIds, Integer ops, String cartKey, String accessToken);
+
+    /**
+     * 获取某个用户的购物车中选中的商品
+     * @param accessToken
+     * @return
+     */
+    List<CartItem> getCartItemForOrder(String accessToken);
+
+    /**
+     * 删除购物车中已经下单的商品
+     * @param accessToken
+     * @param skuIds
+     */
+    void removeCartItem(String accessToken, List<Long> skuIds);
 }
