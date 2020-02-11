@@ -37,6 +37,34 @@ public class OrderController {
     @Reference
     OrderService orderService;
 
+
+    /**
+     * 创建订单的时候必须用到确认订单的那些数据
+     * @param totalPrice 为了比价
+     * @param accessToken
+     * @return
+     */
+    @ApiOperation("下单")
+    @PostMapping("/create")
+    public CommonResult createOrder(@RequestParam("totalPrice") BigDecimal totalPrice,@RequestParam("accessToken") String accessToken,
+                                    @RequestParam("addressId") Long addressId,
+                                    @RequestParam(value = "notes",required = false) String notes,
+                                    @RequestParam(value="orderToken") String orderToken){
+        RpcContext.getContext().setAttachment("accessToken",accessToken);
+        RpcContext.getContext().setAttachment("orderToken",orderToken);
+        //1、创建订单要生成订单和订单项（购物车中的商品）
+        //防重复提交
+        OrderCreateVo orderCreateVo=orderService.createOrder(totalPrice,addressId,notes);
+
+        if(!StringUtils.isEmpty(orderCreateVo.getToken())){
+            CommonResult failed = new CommonResult().failed();
+            failed.setMessage(orderCreateVo.getToken());
+            return failed;
+        }
+        return new CommonResult().success(orderCreateVo);
+    }
+
+
     /**
      * 当信息确认完成以后下一步要提交订单，必须做防重复验证，即接口的幂等性设计
      * 1）利用防重的令牌机制
@@ -47,7 +75,7 @@ public class OrderController {
      *      insert();如果id不是自增，传入id
      *      delete();在数据库如果带id删除，幂等操作
      *      update();乐观锁 且带版本
-     *3）业务方面：
+     * 3）业务方面：
      *      分布式锁+令牌防重
      *      分布式锁防并发下单
      *
@@ -83,37 +111,11 @@ public class OrderController {
     }
 
     /**
-     * 创建订单的时候必须用到确认订单的那些数据
-     * @param totalPrice 为了比价
-     * @param accessToken
-     * @return
-     */
-    @ApiOperation("下单")
-    @PostMapping("/create")
-    public CommonResult createOrder(@RequestParam("totalPrice") BigDecimal totalPrice,@RequestParam("accessToken") String accessToken,
-                                @RequestParam("addressId") Long addressId,
-                                @RequestParam(value = "notes",required = false) String notes,
-                                    @RequestParam(value="orderToken") String orderToken){
-        RpcContext.getContext().setAttachment("accessToken",accessToken);
-        RpcContext.getContext().setAttachment("orderToken",orderToken);
-        //1、创建订单要生成订单和订单项（购物车中的商品）
-        //防重复提交
-        OrderCreateVo orderCreateVo=orderService.createOrder(totalPrice,addressId,notes);
-
-        if(!StringUtils.isEmpty(orderCreateVo.getToken())){
-            CommonResult failed = new CommonResult().failed();
-            failed.setMessage(orderCreateVo.getToken());
-            return failed;
-        }
-        return new CommonResult().success(orderCreateVo);
-    }
-
-    /**
-     * 去支付
+     * 去支付，支付宝支付
      * @return
      */
     @ResponseBody
-    @GetMapping(value = "/pay",produces = {"text/html"})
+    @GetMapping(value = "/ali/pay",produces = {"text/html"})
     public String pay(@RequestParam("orderSn") String orderSn,
                       @RequestParam("accessToken") String accessToken){
         String string=orderService.pay(orderSn,accessToken);
@@ -124,7 +126,7 @@ public class OrderController {
      * 接受支付宝的异步通知
      */
     @ResponseBody
-    @RequestMapping("/pay/success/async")
+    @RequestMapping("/ali/pay/success/async")
     public String paySuccess(HttpServletRequest request) throws UnsupportedEncodingException {
 
         log.debug("支付宝支付异步通知进来了....");
