@@ -1,4 +1,4 @@
-package com.npu.gmall.admin.ums.vo;
+package com.npu.gmall.vo.ums;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;

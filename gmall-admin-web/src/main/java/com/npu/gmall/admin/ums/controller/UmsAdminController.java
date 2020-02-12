@@ -1,16 +1,17 @@
 package com.npu.gmall.admin.ums.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
-import com.npu.gmall.admin.ums.vo.UmsAdminLoginParam;
-import com.npu.gmall.admin.ums.vo.UmsAdminParam;
 import com.npu.gmall.admin.utils.JwtTokenUtil;
 import com.npu.gmall.ums.entity.Admin;
 import com.npu.gmall.ums.service.AdminService;
 import com.npu.gmall.to.CommonResult;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.npu.gmall.vo.ums.UmsAdminLoginParam;
+import com.npu.gmall.vo.ums.UmsAdminParam;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.BindingResult;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,9 +58,10 @@ public class UmsAdminController {
      */
     @ApiOperation(value = "用户注册")
     @PostMapping(value = "/register")
-    public Object register(@Valid @RequestBody UmsAdminParam umsAdminParam,BindingResult result) {
-        Admin admin = null;
+    public Object register(@Valid @RequestBody UmsAdminParam umsAdminParam, BindingResult result) {
+        Admin admin = new Admin();
         //TODO 完成注册功能
+        //利用aop完成
 //        int errorCount = result.getErrorCount();
 //        if(errorCount>0) {
 //            List<FieldError> fieldErrors = result.getFieldErrors();
@@ -69,7 +72,10 @@ public class UmsAdminController {
 //            return new CommonResult().validateFailed(result);
 //        }
         log.debug("需要注册的用户详情:{},校验错误数:{}",umsAdminParam);
-        int a=10/0;
+        BeanUtils.copyProperties(umsAdminParam,admin);
+        admin.setCreateTime(new Date());
+        admin.setStatus(1);
+        adminService.register(admin);
         return new CommonResult().success(admin);
     }
 

@@ -40,7 +40,7 @@ public class DataValidAspect {
 
         Object proceed=null;
 
-        //就是我们反射的 method.invoke();
+
         try{
             //获取目标方法参数
             Object[] args = point.getArgs();
@@ -55,15 +55,16 @@ public class DataValidAspect {
                 }
             }
 //            log.debug("校验切面开始工作");
-            //System.out.println("前置通知");
+//            System.out.println("前置通知");
+            //就是我们反射的 method.invoke();
             proceed = point.proceed(point.getArgs());
-            //System.out.println("返回通知");
+//            System.out.println("返回通知");
 //            log.debug("校验切面将目标方法已经放行...{}",proceed);
         } catch (Throwable t){
-            //将异常抛出去被异常方法补货
+            //将异常抛出去被异常方法捕获
             throw new RuntimeException(t);
         }finally {
-            //System.out.println("后置通知");
+//            System.out.println("后置通知");
         }
         return proceed;
     }

@@ -186,5 +186,4 @@ public class Product implements Serializable {
     @TableField("product_category_name")
     private String productCategoryName;
 
-
 }

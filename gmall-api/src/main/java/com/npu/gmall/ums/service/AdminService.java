@@ -2,6 +2,7 @@ package com.npu.gmall.ums.service;
 
 import com.npu.gmall.ums.entity.Admin;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.npu.gmall.vo.ums.UmsAdminParam;
 
 /**
  * <p>
@@ -16,4 +17,6 @@ public interface AdminService extends IService<Admin> {
     Admin login(String username, String password);
 
     Admin getUserInfo(String userName);
+
+    Integer register(Admin admin);
 }

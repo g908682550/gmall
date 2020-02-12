@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
  *      2）、用户给我提交的封装成VO往下传
  *      request--->提交的vo；
  *      response--->返回的vo；
+ * TO（传输对象）
  *@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
  * 1、不进行数据源的自动配置
  *

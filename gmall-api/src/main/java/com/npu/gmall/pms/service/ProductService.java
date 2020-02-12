@@ -21,18 +21,18 @@ import java.util.List;
 public interface ProductService extends IService<Product> {
 
     /**
-     * 查询商品详情
-     * @param id
-     * @return
-     */
-    Product productInfo(Long id);
-
-    /**
      * 根据复杂查询条件返回分页数据
      * @param productQueryParam
      * @return
      */
     PageInfoVo productPageInfo(PmsProductQueryParam productQueryParam);
+
+    /**
+     * 查询商品详情
+     * @param id
+     * @return
+     */
+    Product productInfo(Long id);
 
     /**
      * 保存商品数据
@@ -46,6 +46,7 @@ public interface ProductService extends IService<Product> {
      * @param publishStatus
      */
     void updatePublishStatus(List<Long> ids, Integer publishStatus);
+
 
     EsProduct productAllInfo(Long id);
 

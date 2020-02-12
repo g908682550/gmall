@@ -18,7 +18,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value={ArithmeticException.class})
     public Object handlerException(Exception e){
         log.error("系统出现异常，信息：{}",e.getMessage());
-
         return new CommonResult().validateFailed("数学运算异常...");
     }
 

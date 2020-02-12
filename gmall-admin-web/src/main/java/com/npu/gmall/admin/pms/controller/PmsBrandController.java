@@ -24,6 +24,19 @@ public class PmsBrandController {
     @Reference
     private BrandService brandService;
 
+    @ApiOperation(value = "根据品牌名称分页获取品牌列表")
+    @GetMapping(value = "/list")
+    public Object getList(@RequestParam(value = "keyword", required = false) String keyword,
+                          @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+                          @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize) {
+        CommonResult commonResult = new CommonResult();
+
+        //TODO 根据品牌名称分页获取品牌列表
+        PageInfoVo vo=brandService.brandPageInfo(keyword,pageNum,pageSize);
+
+        return commonResult.success(vo);
+    }
+
     @ApiOperation(value = "获取全部品牌列表")
     @GetMapping(value = "/listAll")
     public Object getList() {
@@ -63,26 +76,13 @@ public class PmsBrandController {
         return commonResult;
     }
 
-    @ApiOperation(value = "根据品牌名称分页获取品牌列表")
-    @GetMapping(value = "/list")
-    public Object getList(@RequestParam(value = "keyword", required = false) String keyword,
-                            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-                            @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize) {
-        CommonResult commonResult = new CommonResult();
 
-        //TODO 根据品牌名称分页获取品牌列表
-        PageInfoVo vo=brandService.brandPageInfo(keyword,pageNum,pageSize);
-
-        return commonResult.success(vo);
-    }
 
     @ApiOperation(value = "根据编号查询品牌信息")
     @GetMapping(value = "/{id}")
     public Object getItem(@PathVariable("id") Long id) {
         CommonResult commonResult = new CommonResult();
         //TODO 根据编号查询品牌信息
-
-
         return commonResult;
     }
 

@@ -6,6 +6,7 @@ import com.npu.gmall.ums.entity.Admin;
 import com.npu.gmall.ums.mapper.AdminMapper;
 import com.npu.gmall.ums.service.AdminService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.npu.gmall.vo.ums.UmsAdminParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
@@ -22,6 +23,9 @@ import org.springframework.util.DigestUtils;
 @Service
 public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements AdminService {
 
+    @Autowired
+    AdminMapper adminMapper;
+
     /**
      * 获取用户详情
      * @param userName
@@ -32,9 +36,12 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         return adminMapper.selectOne(new QueryWrapper<Admin>().eq("username",userName));
     }
 
-    @Autowired
-    AdminMapper adminMapper;
-
+    /**
+     * 管理员登录
+     * @param username
+     * @param password
+     * @return
+     */
     @Override
     public Admin login(String username, String password) {
 
@@ -45,5 +52,16 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         Admin admin = adminMapper.selectOne(wrapper);
 
         return admin;
+    }
+
+    /**
+     * 管理员注册
+     * @param admin
+     * @return
+     */
+    @Override
+    public Integer register(Admin admin) {
+
+        return adminMapper.insert(admin);
     }
 }
