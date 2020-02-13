@@ -73,3 +73,7 @@ gmall-shop-portal/src/main/resources/templates/
 /gmall-cart/HELP.md
 /gmall-cart/mvnw
 /gmall-cart/mvnw.cmd
+/gmall-seckill/.mvn/
+/gmall-seckill/mvnw.cmd
+/gmall-seckill/mvnw
+/gmall-seckill/HELP.md

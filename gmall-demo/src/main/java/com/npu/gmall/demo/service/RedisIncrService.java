@@ -66,6 +66,7 @@ public class RedisIncrService {
 
     public void incrDistribute() {
         //redis中setnx为原子性操作，判断和保存是原子的
+
         //分布式锁的核心：加锁一定是原子性的（即判断没有值，就给redis保存值），锁要自动超时，解锁要要原子性的
         /**
          * 伪代码
@@ -159,7 +160,7 @@ public class RedisIncrService {
          *
          *      查询商品详情：进缓存--->击穿，穿透，雪崩
          *      查商品
-         *   public void productInfo(){
+         *   public Product productInfo(){
          *      Product cache=jedis.get("product-1")
          *      if(cache!=null) return cache;
          *      else{
