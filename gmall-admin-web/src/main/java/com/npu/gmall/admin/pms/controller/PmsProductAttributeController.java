@@ -39,38 +39,38 @@ public class PmsProductAttributeController {
         return new CommonResult().success(pageInfoVo);
     }
 
-    @ApiOperation("添加商品属性信息")
-    @PostMapping(value = "/create")
-    public Object create(@RequestBody PmsProductAttributeParam productAttributeParam, BindingResult bindingResult) {
-        //TODO 添加商品属性信息
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("修改商品属性信息")
-    @PostMapping(value = "/update/{id}")
-    public Object update(@PathVariable Long id,@RequestBody PmsProductAttributeParam productAttributeParam,BindingResult bindingResult){
-        //TODO 修改商品属性信息
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("查询单个商品属性")
-    @GetMapping(value = "/{id}")
-    public Object getItem(@PathVariable Long id){
-        //TODO 查询单个商品属性
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("批量删除商品属性")
-    @PostMapping(value = "/delete")
-    public Object delete(@RequestParam("ids") List<Long> ids){
-        //TODO 批量删除商品属性
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("根据商品分类的id获取商品属性及属性分类")
-    @GetMapping(value = "/attrInfo/{productCategoryId}")
-    public Object getAttrInfo(@PathVariable Long productCategoryId){
-        //TODO 根据分类查询属性列表或参数列表
-        return new CommonResult().success(null);
-    }
+//    @ApiOperation("添加商品属性信息")
+//    @PostMapping(value = "/create")
+//    public Object create(@RequestBody PmsProductAttributeParam productAttributeParam, BindingResult bindingResult) {
+//        //TODO 添加商品属性信息
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("修改商品属性信息")
+//    @PostMapping(value = "/update/{id}")
+//    public Object update(@PathVariable Long id,@RequestBody PmsProductAttributeParam productAttributeParam,BindingResult bindingResult){
+//        //TODO 修改商品属性信息
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("查询单个商品属性")
+//    @GetMapping(value = "/{id}")
+//    public Object getItem(@PathVariable Long id){
+//        //TODO 查询单个商品属性
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("批量删除商品属性")
+//    @PostMapping(value = "/delete")
+//    public Object delete(@RequestParam("ids") List<Long> ids){
+//        //TODO 批量删除商品属性
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("根据商品分类的id获取商品属性及属性分类")
+//    @GetMapping(value = "/attrInfo/{productCategoryId}")
+//    public Object getAttrInfo(@PathVariable Long productCategoryId){
+//        //TODO 根据分类查询属性列表或参数列表
+//        return new CommonResult().success(null);
+//    }
 }

@@ -45,7 +45,6 @@ public class UmsAdminController {
     private String tokenHeader;
     @Value("${gmall.jwt.tokenHead}")
     private String tokenHead;
-
     @Autowired
     JwtTokenUtil jwtTokenUtil;
 
@@ -61,16 +60,6 @@ public class UmsAdminController {
     public Object register(@Valid @RequestBody UmsAdminParam umsAdminParam, BindingResult result) {
         Admin admin = new Admin();
         //TODO 完成注册功能
-        //利用aop完成
-//        int errorCount = result.getErrorCount();
-//        if(errorCount>0) {
-//            List<FieldError> fieldErrors = result.getFieldErrors();
-//            fieldErrors.forEach(fieldError -> {
-//                String field = fieldError.getField();
-//                log.debug("属性:{},传来的值是:{},校验出错。出错的提示消息:{}",field,fieldError.getRejectedValue(),fieldError.getDefaultMessage());
-//            });
-//            return new CommonResult().validateFailed(result);
-//        }
         log.debug("需要注册的用户详情:{},校验错误数:{}",umsAdminParam);
         BeanUtils.copyProperties(umsAdminParam,admin);
         admin.setCreateTime(new Date());
@@ -136,10 +125,6 @@ public class UmsAdminController {
     public Object getAdminInfo(HttpServletRequest request) {
         String oldToken = request.getHeader(tokenHeader);
         String userName = jwtTokenUtil.getUserNameFromToken(oldToken.substring(tokenHead.length()));
-        //1、getOne是mybatisPlus生成的，而且带了泛型的
-        //2、dubbo没办法直接调用mp中带泛型的service
-        //3、mp自动生成的有兼容问题，不要远程调用
-//        Admin umsAdmin = adminService.getOne(new QueryWrapper<Admin>().eq("username",userName));
         Admin umsAdmin=adminService.getUserInfo(userName);
         Map<String, Object> data = new HashMap<>();
         data.put("username", umsAdmin.getUsername());
@@ -148,86 +133,4 @@ public class UmsAdminController {
         return new CommonResult().success(data);
     }
 
-    @ApiOperation(value = "登出功能")
-    @RequestMapping(value = "/logout", method = RequestMethod.POST)
-    @ResponseBody
-    public Object logout() {
-        //TODO 用户退出
-
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("根据用户名或姓名分页获取用户列表")
-    @RequestMapping(value = "/list",method = RequestMethod.GET)
-    @ResponseBody
-    public Object list(@RequestParam(value = "name",required = false) String name,
-                       @RequestParam(value = "pageSize", defaultValue = "5") Integer pageSize,
-                       @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum){
-        //TODO 分页查询用户信息
-
-        //TODO 响应需要包含分页信息；详细查看swagger规定
-        return new CommonResult().failed();
-    }
-
-    @ApiOperation("获取指定用户信息")
-    @RequestMapping(value = "/{id}",method = RequestMethod.GET)
-    @ResponseBody
-    public Object getItem(@PathVariable Long id){
-
-        //TODO 获取指定用户信息
-        return new CommonResult().failed();
-    }
-
-    @ApiOperation("更新指定用户信息")
-    @RequestMapping(value = "/update/{id}",method = RequestMethod.POST)
-    @ResponseBody
-    public Object update(@PathVariable Long id,@RequestBody Admin admin){
-
-        //TODO 更新指定用户信息
-        return new CommonResult().failed();
-    }
-
-    @ApiOperation("删除指定用户信息")
-    @RequestMapping(value = "/delete/{id}",method = RequestMethod.POST)
-    @ResponseBody
-    public Object delete(@PathVariable Long id){
-        //TODO 删除指定用户信息
-        return new CommonResult().failed();
-    }
-
-    @ApiOperation("给用户分配角色")
-    @RequestMapping(value = "/role/update",method = RequestMethod.POST)
-    @ResponseBody
-    public Object updateRole(@RequestParam("adminId") Long adminId,
-                             @RequestParam("roleIds") List<Long> roleIds){
-        //TODO 给用户分配角色
-        return new CommonResult().failed();
-    }
-
-    @ApiOperation("获取指定用户的角色")
-    @RequestMapping(value = "/role/{adminId}",method = RequestMethod.GET)
-    @ResponseBody
-    public Object getRoleList(@PathVariable Long adminId){
-        //TODO 获取指定用户的角色
-
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("给用户分配(增减)权限")
-    @RequestMapping(value = "/permission/update",method = RequestMethod.POST)
-    @ResponseBody
-    public Object updatePermission(@RequestParam Long adminId,
-                                   @RequestParam("permissionIds") List<Long> permissionIds){
-        //TODO 给用户分配(增减)权限
-
-        return new CommonResult().failed();
-    }
-
-    @ApiOperation("获取用户所有权限（包括+-权限）")
-    @RequestMapping(value = "/permission/{adminId}",method = RequestMethod.GET)
-    @ResponseBody
-    public Object getPermissionList(@PathVariable Long adminId){
-        //TODO 获取用户所有权限（包括+-权限）
-        return new CommonResult().failed();
-    }
 }

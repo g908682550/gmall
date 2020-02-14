@@ -37,7 +37,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     }
 
     /**
-     * 管理员登录
+     * 管理员
      * @param username
      * @param password
      * @return
