@@ -1,8 +1,8 @@
 package com.npu.gmall.cart.service;
 
 
-import com.npu.gmall.cart.vo.CartItem;
-import com.npu.gmall.cart.vo.CartResponse;
+import com.npu.gmall.vo.cart.CartItem;
+import com.npu.gmall.vo.cart.CartResponse;
 
 import java.util.List;
 

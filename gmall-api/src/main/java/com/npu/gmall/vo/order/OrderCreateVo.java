@@ -1,6 +1,6 @@
 package com.npu.gmall.vo.order;
 
-import com.npu.gmall.cart.vo.CartItem;
+import com.npu.gmall.vo.cart.CartItem;
 import lombok.Data;
 
 import java.io.Serializable;

@@ -1,7 +1,6 @@
 package com.npu.gmall.vo.order;
 
-import com.npu.gmall.cart.vo.CartItem;
-import com.npu.gmall.sms.entity.Coupon;
+import com.npu.gmall.vo.cart.CartItem;
 import com.npu.gmall.ums.entity.MemberReceiveAddress;
 import lombok.Data;
 
@@ -13,7 +12,7 @@ import java.util.List;
 public class OrderConfirmVo implements Serializable {
     List<CartItem> cartItems;//购物项
     List<MemberReceiveAddress> addresses;//地址列表
-    List<Coupon> coupons;//优惠券信息
+//    List<Coupon> coupons;//优惠券信息
     private String orderToken;//订单令牌，提交订单需带上
 
     private BigDecimal productTotalPrice=new BigDecimal("0");//商品总额

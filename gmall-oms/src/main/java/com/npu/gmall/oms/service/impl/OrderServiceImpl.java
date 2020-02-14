@@ -13,9 +13,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
 import com.npu.gmall.cart.service.CartService;
-import com.npu.gmall.cart.vo.CartItem;
+import com.npu.gmall.vo.cart.CartItem;
 import com.npu.gmall.constant.OrderStatusEnume;
 import com.npu.gmall.constant.SysCacheConstant;
 import com.npu.gmall.oms.component.MemberComponent;
@@ -326,9 +325,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         //设置收货地址
         confirmVo.setAddresses(memberService.getMemberAddress(id));
-
-        //设置优惠券信息
-        confirmVo.setCoupons(null);
+//
+//        //设置优惠券信息
+//        confirmVo.setCoupons(null);
 
         //设置购物项信息
         List<CartItem> cartItems=cartService.getCartItemForOrder(accessToken);

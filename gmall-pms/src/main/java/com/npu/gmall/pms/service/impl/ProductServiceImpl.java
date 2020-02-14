@@ -57,11 +57,11 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Autowired
     ProductAttributeValueMapper productAttributeValueMapper;
 
-    @Autowired
-    ProductFullReductionMapper productFullReductionMapper;
-
-    @Autowired
-    ProductLadderMapper productLadderMapper;
+//    @Autowired
+//    ProductFullReductionMapper productFullReductionMapper;
+//
+//    @Autowired
+//    ProductLadderMapper productLadderMapper;
 
     @Autowired
     SkuStockMapper skuStockMapper;
@@ -346,11 +346,11 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         proxy.saveProductAttributeValue(productParam);
 
 
-        //pms_product_full_reduction:保存商品的满减信息
-        proxy.saveFullReduction(productParam);
-
-        //pms_product_ladder:阶梯价格表
-        proxy.saveProductLadder(productParam);
+//        //pms_product_full_reduction:保存商品的满减信息
+//        proxy.saveFullReduction(productParam);
+//
+//        //pms_product_ladder:阶梯价格表
+//        proxy.saveProductLadder(productParam);
 
         //pms_sku_stock:sku库存表
         proxy.saveSkuStock(productParam);
@@ -370,22 +370,22 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             skuStockMapper.insert(skuStock);
         }
     }
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveProductLadder(PmsProductParam productParam) {
-        List<ProductLadder> ladderList = productParam.getProductLadderList();
-        ladderList.forEach(ladder->{
-            ladder.setProductId(threadLocal.get());
-            productLadderMapper.insert(ladder);
-        });
-    }
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveFullReduction(PmsProductParam productParam) {
-        List<ProductFullReduction> fullReductionList = productParam.getProductFullReductionList();
-        fullReductionList.forEach(reduction->{
-            reduction.setProductId(threadLocal.get());
-            productFullReductionMapper.insert(reduction);
-        });
-    }
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public void saveProductLadder(PmsProductParam productParam) {
+//        List<ProductLadder> ladderList = productParam.getProductLadderList();
+//        ladderList.forEach(ladder->{
+//            ladder.setProductId(threadLocal.get());
+//            productLadderMapper.insert(ladder);
+//        });
+//    }
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public void saveFullReduction(PmsProductParam productParam) {
+//        List<ProductFullReduction> fullReductionList = productParam.getProductFullReductionList();
+//        fullReductionList.forEach(reduction->{
+//            reduction.setProductId(threadLocal.get());
+//            productFullReductionMapper.insert(reduction);
+//        });
+//    }
 
     public void saveProductAttributeValue(PmsProductParam productParam) {
         List<ProductAttributeValue> valueList = productParam.getProductAttributeValueList();

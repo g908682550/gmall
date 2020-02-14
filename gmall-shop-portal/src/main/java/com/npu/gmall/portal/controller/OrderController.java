@@ -39,33 +39,6 @@ public class OrderController {
 
 
     /**
-     * 创建订单的时候必须用到确认订单的那些数据
-     * @param totalPrice 为了比价
-     * @param accessToken
-     * @return
-     */
-    @ApiOperation("下单")
-    @PostMapping("/create")
-    public CommonResult createOrder(@RequestParam("totalPrice") BigDecimal totalPrice,@RequestParam("accessToken") String accessToken,
-                                    @RequestParam("addressId") Long addressId,
-                                    @RequestParam(value = "notes",required = false) String notes,
-                                    @RequestParam(value="orderToken") String orderToken){
-        RpcContext.getContext().setAttachment("accessToken",accessToken);
-        RpcContext.getContext().setAttachment("orderToken",orderToken);
-        //1、创建订单要生成订单和订单项（购物车中的商品）
-        //防重复提交
-        OrderCreateVo orderCreateVo=orderService.createOrder(totalPrice,addressId,notes);
-
-        if(!StringUtils.isEmpty(orderCreateVo.getToken())){
-            CommonResult failed = new CommonResult().failed();
-            failed.setMessage(orderCreateVo.getToken());
-            return failed;
-        }
-        return new CommonResult().success(orderCreateVo);
-    }
-
-
-    /**
      * 当信息确认完成以后下一步要提交订单，必须做防重复验证，即接口的幂等性设计
      * 1）利用防重的令牌机制
      * 接口幂等性设计：
@@ -109,6 +82,33 @@ public class OrderController {
         OrderConfirmVo confirmVo = orderService.orderConfirm(member.getId());
         return new CommonResult().success(confirmVo);
     }
+
+    /**
+     * 创建订单的时候必须用到确认订单的那些数据
+     * @param totalPrice 为了比价
+     * @param accessToken
+     * @return
+     */
+    @ApiOperation("下单")
+    @PostMapping("/create")
+    public CommonResult createOrder(@RequestParam("totalPrice") BigDecimal totalPrice,@RequestParam("accessToken") String accessToken,
+                                    @RequestParam("addressId") Long addressId,
+                                    @RequestParam(value = "notes",required = false) String notes,
+                                    @RequestParam(value="orderToken") String orderToken){
+        RpcContext.getContext().setAttachment("accessToken",accessToken);
+        RpcContext.getContext().setAttachment("orderToken",orderToken);
+        //1、创建订单要生成订单和订单项（购物车中的商品）
+        //防重复提交
+        OrderCreateVo orderCreateVo=orderService.createOrder(totalPrice,addressId,notes);
+
+        if(!StringUtils.isEmpty(orderCreateVo.getToken())){
+            CommonResult failed = new CommonResult().failed();
+            failed.setMessage(orderCreateVo.getToken());
+            return failed;
+        }
+        return new CommonResult().success(orderCreateVo);
+    }
+
 
     /**
      * 去支付，支付宝支付
