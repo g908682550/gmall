@@ -1,7 +1,7 @@
 package com.npu.gmall.portal.controller;
 
 import com.alibaba.dubbo.config.annotation.Reference;
-import com.npu.gmall.cart.service.CartService;
+import com.npu.gmall.oms.service.CartService;
 import com.npu.gmall.vo.cart.CartResponse;
 import com.npu.gmall.to.CommonResult;
 import io.swagger.annotations.ApiImplicitParam;

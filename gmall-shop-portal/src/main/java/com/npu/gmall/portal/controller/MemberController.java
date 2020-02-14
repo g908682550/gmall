@@ -7,11 +7,14 @@ import com.npu.gmall.to.CommonResult;
 import com.npu.gmall.ums.entity.Member;
 import com.npu.gmall.ums.service.MemberService;
 import com.npu.gmall.vo.ums.LoginResponseVo;
+import com.npu.gmall.vo.ums.UserMemberLoginParam;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -27,10 +30,9 @@ public class MemberController {
 
     @PostMapping("/applogin")
     @ResponseBody
-    public CommonResult loginForGmall(@RequestParam("username") String username,
-                                      @RequestParam("password") String password){
+    public CommonResult loginForGmall(@Valid UserMemberLoginParam userMemberLoginParam,BindingResult result){
 
-        Member member=memberService.login(username,password);
+        Member member=memberService.login(userMemberLoginParam.getUsername(),userMemberLoginParam.getPassword());
         if(member==null){
             //用户没有
             CommonResult commonResult = new CommonResult().failed();
