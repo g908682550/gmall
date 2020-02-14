@@ -1,4 +1,4 @@
-package com.npu.gmall.cart.service;
+package com.npu.gmall.oms.service;
 
 
 import com.npu.gmall.vo.cart.CartItem;
@@ -17,7 +17,7 @@ public interface CartService {
      * @param accessToken
      * @return
      */
-    CartResponse addToCart(Long skuId,Integer num, String cartKey, String accessToken);
+    CartResponse addToCart(Long skuId, Integer num, String cartKey, String accessToken);
 
     /**
      * 更新商品数量

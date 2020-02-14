@@ -5,7 +5,6 @@ import com.npu.gmall.admin.utils.JwtTokenUtil;
 import com.npu.gmall.ums.entity.Admin;
 import com.npu.gmall.ums.service.AdminService;
 import com.npu.gmall.to.CommonResult;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.npu.gmall.vo.ums.UmsAdminLoginParam;
 import com.npu.gmall.vo.ums.UmsAdminParam;
 import io.swagger.annotations.Api;
@@ -15,14 +14,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -81,7 +78,7 @@ public class UmsAdminController {
      */
     @ApiOperation(value = "登录以后返回token")
     @PostMapping(value = "/login")
-    public Object login(@RequestBody UmsAdminLoginParam umsAdminLoginParam, BindingResult result) {
+    public Object login(@Valid @RequestBody UmsAdminLoginParam umsAdminLoginParam, BindingResult result) {
         //去数据库登陆
         Admin admin = adminService.login(umsAdminLoginParam.getUsername(), umsAdminLoginParam.getPassword());
         //登陆成功生成token，此token携带基本用户信息，以后就不用去数据库了

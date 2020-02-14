@@ -42,7 +42,6 @@
 /gmall-admin-web/target/
 /gmall-api/target/
 gmall-admin-web/src/main/java/com/npu/gmall/admin/cms/
-gmall-admin-web/src/main/java/com/npu/gmall/admin/oss/
 gmall-admin-web/src/main/java/com/npu/gmall/admin/sms/
 gmall-admin-web/src/main/resources/static/
 gmall-admin-web/src/main/resources/templates/

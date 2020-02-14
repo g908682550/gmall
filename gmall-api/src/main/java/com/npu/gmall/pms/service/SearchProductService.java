@@ -1,4 +1,4 @@
-package com.npu.gmall.search;
+package com.npu.gmall.pms.service;
 
 import com.npu.gmall.vo.search.SearchParam;
 import com.npu.gmall.vo.search.SearchResponse;
