@@ -77,3 +77,6 @@ gmall-shop-portal/src/main/resources/templates/
 /gmall-seckill/mvnw.cmd
 /gmall-seckill/mvnw
 /gmall-seckill/HELP.md
+/gmall-admin-web/target/
+/gmall-demo/target/
+/gmall-oms/target/
