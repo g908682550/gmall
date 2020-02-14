@@ -19,10 +19,8 @@ public class Cart implements Serializable {
     private BigDecimal totalPrice;//已选中商品的总价
 
     public Integer getCount(){
-
         if(cartItems!=null){
             AtomicInteger all=new AtomicInteger(0);
-
             cartItems.forEach(cartItem -> {
                 all.getAndAdd(cartItem.getCount());
             });
@@ -33,10 +31,8 @@ public class Cart implements Serializable {
     }
 
     public BigDecimal getTotalPrice(){
-
         if(cartItems!=null){
             AtomicReference<BigDecimal> allTotal= new AtomicReference<>(new BigDecimal("0"));
-
             cartItems.forEach(cartItem -> {
                 BigDecimal add = allTotal.get().add(cartItem.getTotalPrice());
                 allTotal.set(add);
@@ -46,6 +42,4 @@ public class Cart implements Serializable {
             return new BigDecimal("0");
         }
     }
-
-    //购物车数据返回给前端
 }

@@ -25,5 +25,4 @@ public class OrderConfirmVo implements Serializable {
 
     private BigDecimal transPrice=new BigDecimal("10");//运费
 
-    //其它支付方式、配送方式
 }

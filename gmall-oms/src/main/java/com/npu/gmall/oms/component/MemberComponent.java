@@ -40,15 +40,16 @@ public class MemberComponent {
         }
         UserCartKey userCartKey = new UserCartKey();
         if(member!=null){
-            //获取到在线用户
+            //用户已经登录
             userCartKey.setLogin(true);
             userCartKey.setUserId(member.getId());
             userCartKey.setFinalCartKey(CartConstant.USER_CART_KEY_PREFIX+member.getId());
-
         }else if(!StringUtils.isEmpty(cartKey)){
+            //用户未登录但目前已有离线购物车
             userCartKey.setLogin(false);
             userCartKey.setFinalCartKey(CartConstant.TEMP_CART_KEY_PREFIX+cartKey);
         }else{
+            //用户未登录且没有离线购物车
             String replace = UUID.randomUUID().toString().replace("-", "");
             userCartKey.setLogin(false);
             userCartKey.setFinalCartKey(CartConstant.TEMP_CART_KEY_PREFIX+replace);

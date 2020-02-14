@@ -1,4 +1,4 @@
-package com.npu.gmall.portal.controller;
+package com.npu.gmall.portal.controller.pms;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.npu.gmall.pms.service.SearchProductService;

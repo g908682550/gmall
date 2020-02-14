@@ -10,6 +10,7 @@ import java.util.List;
  * 购物车服务
  */
 public interface CartService {
+
     /**
      * 添加商品至购物车
      * @param skuId
@@ -37,8 +38,21 @@ public interface CartService {
      */
     CartResponse listCart(String cartKey, String accessToken);
 
+    /**
+     * 移除某项
+     * @param skuId
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     CartResponse delCartItem(Long skuId, String cartKey, String accessToken);
 
+    /**
+     * 清空购物车
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     CartResponse clearCart(String cartKey, String accessToken);
 
     /**

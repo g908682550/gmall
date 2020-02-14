@@ -1,6 +1,6 @@
 package com.npu.gmall.constant;
 
-public enum OrderStatusEnume {
+public enum OrderStatusEnum {
 
 
     /**
@@ -15,7 +15,7 @@ public enum OrderStatusEnume {
     private String msg;
 
 
-    OrderStatusEnume(Integer code,String msg){
+    OrderStatusEnum(Integer code,String msg){
         this.code = code;
         this.msg = msg;
     }

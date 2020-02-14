@@ -4,9 +4,9 @@ import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.npu.gmall.cart.service.CartService;
 import com.npu.gmall.constant.CartConstant;
 import com.npu.gmall.oms.component.MemberComponent;
+import com.npu.gmall.oms.service.CartService;
 import com.npu.gmall.pms.entity.Product;
 import com.npu.gmall.pms.entity.SkuStock;
 import com.npu.gmall.pms.service.ProductService;
@@ -32,6 +32,12 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class CartServiceImpl implements CartService {
 
+    @Reference
+    SkuStockService skuStockService;
+
+    @Reference
+    ProductService productService;
+
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
@@ -41,42 +47,128 @@ public class CartServiceImpl implements CartService {
     @Autowired
     RedissonClient redissonClient;
 
-    @Reference
-    SkuStockService skuStockService;
 
-    @Reference
-    ProductService productService;
+    /**
+     * 添加到购物车
+     * @param skuId
+     * @param num
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
+    public CartResponse addToCart(Long skuId, Integer num, String cartKey, String accessToken) {
 
-    @Override
-    public void removeCartItem(String accessToken, List<Long> skuIds) {
-        RMap<String, String> cartMap = getCartMap(null, accessToken);
-        skuIds.forEach(id->{
-            //移除商品项
-            cartMap.remove(id.toString());
-        });
-        //移除勾选状态的保存
-        cartMap.put(CartConstant.CART_CHECKED_KEY,JSON.toJSONString(new LinkedHashSet<>()));
+        //0、根据accessToken获取用户的id
+        Member member = memberComponent.getMemberByAccessToken(accessToken);
 
+        //cartkey不为空说明存在离线购物车，将在线及离线购物车进行合并
+        if(member!=null&&!StringUtils.isEmpty(cartKey)){
+            mergeCart(cartKey,member.getId());
+        }
+
+        //获取到用户真正能使用到的购物车，3种情况，用户登录，用户未登录尚未有离线购物车，用户未登录且有离线购物车
+        UserCartKey userCartKey = memberComponent.getCartKey(accessToken, cartKey);
+
+        //具体的添加流程
+        CartItem cartItem = addItemToCart(skuId,num,userCartKey.getFinalCartKey());
+
+        CartResponse cartResponse=new CartResponse();
+        cartResponse.setCartItem(cartItem);
+
+        if(!StringUtils.isEmpty(userCartKey.getTempCartKey())) cartResponse.setCartKey(userCartKey.getTempCartKey());//如果有生成的key，设置进去
+        //也可以把整个购物车数据返回，方便操作
+        Cart cart = listCart(cartKey, accessToken).getCart();
+        cartResponse.setCart(cart);
+        return cartResponse;
+    }
+    /**
+     * @param cartKey 老购物车
+     * @param id 用户id
+     */
+    private void mergeCart(String cartKey, Long id) {
+        String oldCartKey=CartConstant.TEMP_CART_KEY_PREFIX+cartKey;
+        String userCartKey=CartConstant.USER_CART_KEY_PREFIX+id.toString();
+
+        //获取到老购物车的数据
+        RMap<String,String> map = redissonClient.getMap(oldCartKey);
+        if(map!=null&&!map.isEmpty())
+            map.entrySet().forEach(item->{
+                //key就是skuId
+                String key = item.getKey();
+                if(!key.equalsIgnoreCase(CartConstant.CART_CHECKED_KEY)){
+                    //购物项的json数据
+                    String value = item.getValue();
+                    CartItem cartItem = JSON.parseObject(value, CartItem.class);
+                    addItemToCart(Long.parseLong(key),cartItem.getCount(),userCartKey);
+                }
+            });
+        map.clear();
     }
 
-    @Override
-    public List<CartItem> getCartItemForOrder(String accessToken) {
-        //获取用户中被选中的数据
+    /**
+     * 给指定商品添加到购物车
+     * @param skuId
+     * @param num
+     * @param finalCartKey
+     * @return
+     */
+    private CartItem addItemToCart(Long skuId,Integer num,String finalCartKey) {
 
-        List<CartItem> cartItems=new ArrayList<>();
-
-        UserCartKey cartKey = memberComponent.getCartKey(accessToken, null);
-        RMap<String, String> map = redissonClient.getMap(cartKey.getFinalCartKey());
-        String checkItemsJson= map.get(CartConstant.CART_CHECKED_KEY);
-        Set<Long> items = JSON.parseObject(checkItemsJson, new TypeReference<Set<Long>>(){});
-
-        items.forEach(item->{
-            String itemJson = map.get(item.toString());
-            cartItems.add(JSON.parseObject(itemJson,CartItem.class));
+        CartItem newCartItem = new CartItem();
+        /**
+         * 异步运行获取商品信息，可以使用线程池
+         */
+        CompletableFuture<Void> skuFuture = CompletableFuture.supplyAsync(() -> {
+            //查出skuId在数据库对应的最新详情,远程查询
+            SkuStock skuStock = skuStockService.getById(skuId);
+            return skuStock;
+        }).thenAccept(skuStock -> {
+            Product product = productService.getById(skuStock.getProductId());
+            BeanUtils.copyProperties(skuStock, newCartItem);
+            newCartItem.setSkuId(skuStock.getId());
+            newCartItem.setName(product.getName());
+            newCartItem.setCount(num);
+            newCartItem.setCheck(true);
         });
-        return cartItems;
+
+        RMap<String, String> map = redissonClient.getMap(finalCartKey);
+        //获取购物车这个skuId对应的购物项
+        String itemJson = map.get(skuId.toString());
+        //购物项之前是否存在
+        if(!StringUtils.isEmpty(itemJson)){
+            CartItem oldItem = JSON.parseObject(itemJson, CartItem.class);
+            Integer count = oldItem.getCount();
+            try {
+                skuFuture.get();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            newCartItem.setCount(count+num);
+            String newItemJson = JSON.toJSONString(newCartItem);
+            map.put(skuId.toString(),newItemJson);
+        }else{
+            try {
+                skuFuture.get();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //新增购物项
+            String newItemJson = JSON.toJSONString(newCartItem);
+            map.put(skuId.toString(),newItemJson);
+        }
+        //维护勾选状态列表
+        checkItem(Arrays.asList(skuId),true,finalCartKey);
+        return newCartItem;
     }
 
+    /**
+     * 选中或不选中某些购物项
+     * @param skuIds
+     * @param ops
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     @Override
     public CartResponse checkCartItems(String skuIds, Integer ops, String cartKey, String accessToken) {
 
@@ -109,26 +201,12 @@ public class CartServiceImpl implements CartService {
         return cartResponse;
     }
 
-    @Override
-    public CartResponse clearCart(String cartKey, String accessToken) {
-        UserCartKey userCartKey=memberComponent.getCartKey(accessToken,cartKey);
-        RMap<String, String> map = getCartMap(cartKey, accessToken);
-
-        List<Long> skuIds=new ArrayList<>();
-
-        map.entrySet().forEach(item->{
-            if(!item.getKey().equalsIgnoreCase(CartConstant.CART_CHECKED_KEY)) skuIds.add(Long.parseLong(item.getKey()));
-        });
-
-        checkItem(skuIds,false,userCartKey.getFinalCartKey());
-
-        map.clear();
-
-        CartResponse cartResponse = new CartResponse();
-        cartResponse.setCartKey(userCartKey.getTempCartKey());
-        return cartResponse;
-    }
-
+    /**
+     * 通过redisson获取当前key对应的map
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     public RMap<String, String>  getCartMap(String cartKey, String accessToken) {
         UserCartKey userCartKey=memberComponent.getCartKey(accessToken,cartKey);
         String finalCartKey = userCartKey.getFinalCartKey();
@@ -136,6 +214,13 @@ public class CartServiceImpl implements CartService {
         return map;
     }
 
+    /**
+     * 删除购物车的某项
+     * @param skuId
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     @Override
     public CartResponse delCartItem(Long skuId, String cartKey, String accessToken) {
 
@@ -143,21 +228,31 @@ public class CartServiceImpl implements CartService {
         checkItem(Arrays.asList(skuId),false,memberComponent.getCartKey(accessToken,cartKey).getFinalCartKey());
         RMap<String, String> map = getCartMap(cartKey, accessToken);
         map.remove(skuId.toString());
-
         return listCart(accessToken,cartKey);
     }
 
+    /**
+     * 查询购物车所有项
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     @Override
     public CartResponse listCart(String cartKey, String accessToken) {
         CartResponse cartResponse=new CartResponse();
         Cart cart = new Cart();
         List<CartItem> cartItems=new ArrayList<>();
         UserCartKey userCartKey = memberComponent.getCartKey(accessToken, cartKey);
+
         //用户登录了，需要合并购物车
         if(userCartKey.getLogin()) mergeCart(cartKey,userCartKey.getUserId());
+
         String finalCartKey = userCartKey.getFinalCartKey();
-        stringRedisTemplate.expire(finalCartKey,30L, TimeUnit.DAYS);
+
+        stringRedisTemplate.expire(finalCartKey,1L, TimeUnit.DAYS);
+
         RMap<String, String> map = redissonClient.getMap(finalCartKey);
+
         if(map!=null&&!map.isEmpty()){
             map.entrySet().forEach(item->{
                 if(!item.getKey().equalsIgnoreCase(CartConstant.CART_CHECKED_KEY)){
@@ -177,6 +272,40 @@ public class CartServiceImpl implements CartService {
         return cartResponse;
     }
 
+    /**
+     * 清空购物车
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
+    @Override
+    public CartResponse clearCart(String cartKey, String accessToken) {
+        UserCartKey userCartKey=memberComponent.getCartKey(accessToken,cartKey);
+        RMap<String, String> map = getCartMap(cartKey, accessToken);
+
+        List<Long> skuIds=new ArrayList<>();
+
+        map.entrySet().forEach(item->{
+            if(!item.getKey().equalsIgnoreCase(CartConstant.CART_CHECKED_KEY)) skuIds.add(Long.parseLong(item.getKey()));
+        });
+
+        checkItem(skuIds,false,userCartKey.getFinalCartKey());
+
+        map.clear();
+        CartResponse cartResponse = new CartResponse();
+        cartResponse.setCartKey(userCartKey.getTempCartKey());
+        return cartResponse;
+    }
+
+
+    /**
+     * 添加购物车已有商品的属性
+     * @param skuId
+     * @param num
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
     @Override
     public CartResponse updateCartItem(Long skuId, Integer num, String cartKey, String accessToken) {
         RMap<String, String> map = getCartMap(cartKey, accessToken);
@@ -199,164 +328,11 @@ public class CartServiceImpl implements CartService {
     }
 
     /**
-     * 添加到购物车
-     * @param skuId
-     * @param num
-     * @param cartKey
-     * @param accessToken
-     * @return
-     */
-    public CartResponse addToCart(Long skuId, Integer num, String cartKey, String accessToken) {
-
-        //0、根据accessToken获取用户的id
-        Member member = memberComponent.getMemberByAccessToken(accessToken);
-
-        //合并购物车
-        if(member!=null&&!StringUtils.isEmpty(cartKey)){
-            mergeCart(cartKey,member.getId());
-        }
-
-        //获取到用户真正能使用到的购物车
-        UserCartKey userCartKey = memberComponent.getCartKey(accessToken, cartKey);
-        CartItem cartItem = addItemToCart(skuId,num,userCartKey.getFinalCartKey());
-        CartResponse cartResponse=new CartResponse();
-        cartResponse.setCartItem(cartItem);
-        if(!StringUtils.isEmpty(userCartKey.getTempCartKey())) cartResponse.setCartKey(userCartKey.getTempCartKey());//如果有生成的key，设置进去
-        //也可以把整个购物车数据返回，方便操作
-        Cart cart = listCart(cartKey, accessToken).getCart();
-        cartResponse.setCart(cart);
-        return cartResponse;
-
-//        //1、这个人登录了，购物车就用他的在线购物车；cart:user:1
-//        if(member!=null){
-//            finalCartKey= CartConstant.USER_CART_KEY_PREFIX+member.getId();
-//            /**
-//             * 1、按照skuId找到sku的真正信息
-//             * 2、给指定的购物车添加记录
-//             *      如果已经有了这个skuId只是count的增加
-//             */
-//            CartItem cartItem = addItemToCart(skuId, num,finalCartKey);
-//
-//            CartResponse cartResponse=new CartResponse();
-//            cartResponse.setCartItem(cartItem);
-//            return cartResponse;
-//        }
-//
-//        //2、这个人没登录，用离线(临时)购物车，cart:temp:cartKey
-//        if(!StringUtils.isEmpty(cartKey)){
-//            finalCartKey=CartConstant.TEMP_CART_KEY_PREFIX+cartKey;
-//            CartItem cartItem = addItemToCart(skuId,num,finalCartKey);
-//            CartResponse cartResponse=new CartResponse();
-//            cartResponse.setCartItem(cartItem);
-//            return cartResponse;
-//        }
-
-        //3、如果以上都没有，说明刚来，分配一个临时购物车
-//        String newCartKey = UUID.randomUUID().toString().replace("-", "");
-//        finalCartKey=CartConstant.TEMP_CART_KEY_PREFIX+newCartKey;
-//        CartItem cartItem = addItemToCart(skuId,num,finalCartKey);
-//        CartResponse cartResponse=new CartResponse();
-//        cartResponse.setCartItem(cartItem);
-//        cartResponse.setCartKey(newCartKey);
-    }
-
-    /**
-     * @param cartKey 老购物车
-     * @param id 用户id
-     */
-    private void mergeCart(String cartKey, Long id) {
-        String oldCartKey=CartConstant.TEMP_CART_KEY_PREFIX+cartKey;
-        String userCartKey=CartConstant.USER_CART_KEY_PREFIX+id.toString();
-
-        //获取到老购物车的数据
-        RMap<String,String> map = redissonClient.getMap(oldCartKey);
-        if(map!=null&&!map.isEmpty())
-        map.entrySet().forEach(item->{
-            //key就是skuId
-            String key = item.getKey();
-            if(!key.equalsIgnoreCase(CartConstant.CART_CHECKED_KEY)){
-                //购物项的json数据
-                String value = item.getValue();
-                CartItem cartItem = JSON.parseObject(value, CartItem.class);
-                addItemToCart(Long.parseLong(key),cartItem.getCount(),userCartKey);
-            }
-        });
-        map.clear();
-    }
-
-    /**
-     * 给指定商品添加到购物车
-     * @param skuId
-     * @param num
+     * 维护购物车状态
+     * @param skuIdsList
+     * @param checked
      * @param finalCartKey
-     * @return
      */
-    private CartItem addItemToCart(Long skuId,Integer num,String finalCartKey) {
-
-        CartItem newCartItem = new CartItem();
-
-        /**
-         * 1、thenAccept:只接受上一步的结果
-         *      thenAcceptAsync:异步执行
-         * thenAccept(r){
-         *     r:上一步的结果
-         * }
-         *
-         *
-         * 2、可以修改和返回上一步结果
-         * thenApply(r){
-         *     r:上一步结果拿来后处理后再返回
-         * }
-         */
-        CompletableFuture<Void> skuFuture = CompletableFuture.supplyAsync(() -> {
-            //查出skuId在数据库对应的最新详情,远程查询
-            SkuStock skuStock = skuStockService.getById(skuId);
-            return skuStock;
-        }).thenAccept(skuStock -> {
-            Product product = productService.getById(skuStock.getProductId());
-            BeanUtils.copyProperties(skuStock, newCartItem);
-            newCartItem.setSkuId(skuStock.getId());
-            newCartItem.setName(product.getName());
-            newCartItem.setCount(num);
-            newCartItem.setCheck(true);
-        });
-
-        /**
-         * 购物车集合 k是str,v是str（json）
-         */
-        RMap<String, String> map = redissonClient.getMap(finalCartKey);
-
-        //获取购物车这个skuId对应的购物项
-        String itemJson = map.get(skuId.toString());
-
-        if(!StringUtils.isEmpty(itemJson)){
-            //只是数量叠加,购物车老item获取到数量，给新的cartItem里面添加信息
-            CartItem oldItem = JSON.parseObject(itemJson, CartItem.class);
-            Integer count = oldItem.getCount();
-            try {
-                skuFuture.get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            newCartItem.setCount(count+num);
-            String newItemJson = JSON.toJSONString(newCartItem);
-            map.put(skuId.toString(),newItemJson);
-        }else{
-            try {
-                skuFuture.get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            //新增购物项
-            String newItemJson = JSON.toJSONString(newCartItem);
-            map.put(skuId.toString(),newItemJson);
-        }
-        //维护勾选状态列表
-        checkItem(Arrays.asList(skuId),true,finalCartKey);
-        return newCartItem;
-    }
-
-    //修改购物车状态
     private void checkItem(List<Long> skuIdsList,Boolean checked,String finalCartKey){
 
         RMap<String, String> map = redissonClient.getMap(finalCartKey);
@@ -367,11 +343,49 @@ public class CartServiceImpl implements CartService {
         Set<Long> longSet=JSON.parseObject(checkedJson,new TypeReference<Set<Long>>(){});
         if(longSet==null||longSet.isEmpty()) longSet=new HashSet<>();
         if(checked){
-            longSet.addAll(skuIdsList);
             //重新保存被选中的商品
+            longSet.addAll(skuIdsList);
         }else{
             longSet.removeAll(skuIdsList);
         }
         map.put(CartConstant.CART_CHECKED_KEY,JSON.toJSONString(longSet));
+    }
+
+    /**
+     * 订单服务调用，清除购物车中已经下单的商品
+     * @param accessToken
+     * @param skuIds
+     */
+    @Override
+    public void removeCartItem(String accessToken, List<Long> skuIds) {
+        RMap<String, String> cartMap = getCartMap(null, accessToken);
+        skuIds.forEach(id->{
+            //移除商品项
+            cartMap.remove(id.toString());
+        });
+        //移除勾选状态的保存
+        cartMap.put(CartConstant.CART_CHECKED_KEY,JSON.toJSONString(new LinkedHashSet<>()));
+    }
+
+    /**
+     * 订单服务调用，根据用户信息获取购物车内所选商品总条目
+     * @param accessToken
+     * @return
+     */
+    @Override
+    public List<CartItem> getCartItemForOrder(String accessToken) {
+        //获取用户中被选中的数据
+        List<CartItem> cartItems=new ArrayList<>();
+
+        UserCartKey cartKey = memberComponent.getCartKey(accessToken, null);
+        RMap<String, String> map = redissonClient.getMap(cartKey.getFinalCartKey());
+        String checkItemsJson= map.get(CartConstant.CART_CHECKED_KEY);
+        Set<Long> items = JSON.parseObject(checkItemsJson, new TypeReference<Set<Long>>(){});
+
+        items.forEach(item->{
+            String itemJson = map.get(item.toString());
+            cartItems.add(JSON.parseObject(itemJson,CartItem.class));
+        });
+        return cartItems;
     }
 }

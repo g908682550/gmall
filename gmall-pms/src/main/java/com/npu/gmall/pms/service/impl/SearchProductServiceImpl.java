@@ -3,7 +3,7 @@ package com.npu.gmall.pms.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.fastjson.JSON;
 import com.npu.gmall.constant.EsConstant;
-import com.npu.gmall.search.SearchProductService;
+import com.npu.gmall.pms.service.SearchProductService;
 import com.npu.gmall.to.es.EsProduct;
 import com.npu.gmall.vo.search.SearchParam;
 import com.npu.gmall.vo.search.SearchResponse;

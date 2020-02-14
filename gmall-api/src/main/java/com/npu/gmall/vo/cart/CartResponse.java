@@ -11,6 +11,7 @@ public class CartResponse implements Serializable {
 
     private CartItem cartItem;//某一项
 
+    //如果用户已经登录此项为null
     private String cartKey;//临时生成的
 
 }

@@ -69,73 +69,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     //当前线程共享同样的数据,同一次调用，上面的方法下面要用，就可以用ThreadLocal共享数据
     ThreadLocal<Long> threadLocal=new ThreadLocal<>();
 
-    @Override
-    public PageInfoVo productPageInfo(PmsProductQueryParam param) {
-
-        QueryWrapper<Product> wrapper=new QueryWrapper<>();
-
-        if(param.getBrandId()!=null) wrapper.eq("brand_id",param.getBrandId());
-        if(!StringUtils.isEmpty(param.getKeyword())) wrapper.like("name",param.getKeyword());
-        if(param.getProductCategoryId()!=null) wrapper.eq("product_category_id",param.getProductCategoryId());
-        if(!StringUtils.isEmpty(param.getProductSn())) wrapper.like("product_sn",param.getProductSn());
-        if(param.getPublishStatus()!=null) wrapper.eq("publish_status",param.getPublishStatus());
-        if(param.getVerifyStatus()!=null) wrapper.eq("verify_status",param.getVerifyStatus());
-
-        IPage<Product> page = productMapper.selectPage(new Page<Product>(param.getPageNum(), param.getPageSize()), wrapper);
-        PageInfoVo vo = new PageInfoVo(page.getTotal(), page.getPages(), param.getPageSize(), page.getRecords(), page.getCurrent());
-        return vo;
-    }
-
-    @Override
-    public EsProduct productAllInfo(Long id) {
-
-        EsProduct esProduct=null;
-
-        SearchSourceBuilder builder=new SearchSourceBuilder();
-        builder.query(QueryBuilders.termQuery("id",id));
-
-        Search build = new Search.Builder(builder.toString()).addIndex(EsConstant.PRODUCT_ES_INDEX)
-                .addType(EsConstant.PRODUCT_INFO_ES_TYPE)
-                .build();
-        SearchResult execute=null;
-        try {
-            execute = jestClient.execute(build);
-            List<SearchResult.Hit<EsProduct, Void>> hits = execute.getHits(EsProduct.class);
-            esProduct = hits.get(0).source;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return esProduct;
-    }
-
-    @Override
-    public EsProduct productSkuInfo(Long id) {
-        EsProduct esProduct=null;
-
-        SearchSourceBuilder builder=new SearchSourceBuilder();
-        builder.query(QueryBuilders.nestedQuery("skuProductInfos",QueryBuilders.termQuery("skuProductInfos.id",id), ScoreMode.None));
-
-        Search build = new Search.Builder(builder.toString()).addIndex(EsConstant.PRODUCT_ES_INDEX)
-                .addType(EsConstant.PRODUCT_INFO_ES_TYPE)
-                .build();
-        SearchResult execute=null;
-        try {
-            execute = jestClient.execute(build);
-            List<SearchResult.Hit<EsProduct, Void>> hits = execute.getHits(EsProduct.class);
-            esProduct = hits.get(0).source;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return esProduct;
-    }
-
-    @Override
-    public Product productInfo(Long id) {
-        return productMapper.selectById(id);
-    }
-
     /**
      * 改掉默认的mapping信息；
      * 1）、改掉不分词的字段
@@ -402,5 +335,72 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         productMapper.insert(product);
         threadLocal.set(product.getId());
         return product;
+    }
+
+    @Override
+    public PageInfoVo productPageInfo(PmsProductQueryParam param) {
+
+        QueryWrapper<Product> wrapper=new QueryWrapper<>();
+
+        if(param.getBrandId()!=null) wrapper.eq("brand_id",param.getBrandId());
+        if(!StringUtils.isEmpty(param.getKeyword())) wrapper.like("name",param.getKeyword());
+        if(param.getProductCategoryId()!=null) wrapper.eq("product_category_id",param.getProductCategoryId());
+        if(!StringUtils.isEmpty(param.getProductSn())) wrapper.like("product_sn",param.getProductSn());
+        if(param.getPublishStatus()!=null) wrapper.eq("publish_status",param.getPublishStatus());
+        if(param.getVerifyStatus()!=null) wrapper.eq("verify_status",param.getVerifyStatus());
+
+        IPage<Product> page = productMapper.selectPage(new Page<Product>(param.getPageNum(), param.getPageSize()), wrapper);
+        PageInfoVo vo = new PageInfoVo(page.getTotal(), page.getPages(), param.getPageSize(), page.getRecords(), page.getCurrent());
+        return vo;
+    }
+
+    @Override
+    public EsProduct productAllInfo(Long id) {
+
+        EsProduct esProduct=null;
+
+        SearchSourceBuilder builder=new SearchSourceBuilder();
+        builder.query(QueryBuilders.termQuery("id",id));
+
+        Search build = new Search.Builder(builder.toString()).addIndex(EsConstant.PRODUCT_ES_INDEX)
+                .addType(EsConstant.PRODUCT_INFO_ES_TYPE)
+                .build();
+        SearchResult execute=null;
+        try {
+            execute = jestClient.execute(build);
+            List<SearchResult.Hit<EsProduct, Void>> hits = execute.getHits(EsProduct.class);
+            esProduct = hits.get(0).source;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return esProduct;
+    }
+
+    @Override
+    public EsProduct productSkuInfo(Long id) {
+        EsProduct esProduct=null;
+
+        SearchSourceBuilder builder=new SearchSourceBuilder();
+        builder.query(QueryBuilders.nestedQuery("skuProductInfos",QueryBuilders.termQuery("skuProductInfos.id",id), ScoreMode.None));
+
+        Search build = new Search.Builder(builder.toString()).addIndex(EsConstant.PRODUCT_ES_INDEX)
+                .addType(EsConstant.PRODUCT_INFO_ES_TYPE)
+                .build();
+        SearchResult execute=null;
+        try {
+            execute = jestClient.execute(build);
+            List<SearchResult.Hit<EsProduct, Void>> hits = execute.getHits(EsProduct.class);
+            esProduct = hits.get(0).source;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return esProduct;
+    }
+
+    @Override
+    public Product productInfo(Long id) {
+        return productMapper.selectById(id);
     }
 }

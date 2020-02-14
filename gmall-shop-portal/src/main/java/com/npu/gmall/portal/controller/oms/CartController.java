@@ -1,4 +1,4 @@
-package com.npu.gmall.portal.controller;
+package com.npu.gmall.portal.controller.oms;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.npu.gmall.oms.service.CartService;
@@ -32,6 +32,30 @@ public class CartController {
                                 @RequestParam(value = "cartKey",required = false) String cartKey,
                                 @RequestParam(value = "accessToken",required = false) String accessToken){
         CartResponse cartResponse=cartService.addToCart(skuId,num,cartKey,accessToken);
+        return new CommonResult().success(cartResponse);
+    }
+
+    /**
+     * 整体选中/不选中
+     * @param skuIds 1,2,3,4
+     * @param ops
+     * @param cartKey
+     * @param accessToken
+     * @return
+     */
+    @ApiOperation("购物项选中/不选中")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="skuIds",value = "所有操作商品的skuId的集合，多个商品的id用,分割"),
+            @ApiImplicitParam(name = "ops",value = "1:选中,0:不选中"),
+            @ApiImplicitParam(name="cartKey",value = "离线购物车key，可以没有"),
+            @ApiImplicitParam(name="accessToken",value="登录后的访问令牌，没登录不用传")
+    })
+    @PostMapping("/check")
+    public CommonResult cartCheck(@RequestParam(value = "skuIds") String skuIds,
+                                  @RequestParam(value = "ops",defaultValue = "1") Integer ops,
+                                  @RequestParam(value = "cartKey",required = false) String cartKey,
+                                  @RequestParam(value = "accessToken",required = false) String accessToken){
+        CartResponse cartResponse=cartService.checkCartItems(skuIds,ops,cartKey,accessToken);
         return new CommonResult().success(cartResponse);
     }
 
@@ -94,28 +118,5 @@ public class CartController {
         return new CommonResult().success(cartResponse);
     }
 
-    /**
-     * 选中/不选中
-     * @param skuIds 1,2,3,4
-     * @param ops
-     * @param cartKey
-     * @param accessToken
-     * @return
-     */
-    @ApiOperation("购物项选中/不选中")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="skuIds",value = "所有操作商品的skuId的集合，多个商品的id用,分割"),
-            @ApiImplicitParam(name = "ops",value = "1:选中,0:不选中"),
-            @ApiImplicitParam(name="cartKey",value = "离线购物车key，可以没有"),
-            @ApiImplicitParam(name="accessToken",value="登录后的访问令牌，没登录不用传")
-    })
-    @PostMapping("/check")
-    public CommonResult cartCheck(@RequestParam(value = "skuIds") String skuIds,
-                                  @RequestParam(value = "ops",defaultValue = "1") Integer ops,
-                                  @RequestParam(value = "cartKey",required = false) String cartKey,
-                                  @RequestParam(value = "accessToken",required = false) String accessToken){
-        CartResponse cartResponse=cartService.checkCartItems(skuIds,ops,cartKey,accessToken);
-        return new CommonResult().success(cartResponse);
-    }
 
 }

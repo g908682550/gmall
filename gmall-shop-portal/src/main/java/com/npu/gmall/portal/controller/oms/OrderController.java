@@ -1,4 +1,4 @@
-package com.npu.gmall.portal.controller;
+package com.npu.gmall.portal.controller.oms;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.dubbo.rpc.RpcContext;
@@ -108,7 +108,6 @@ public class OrderController {
         }
         return new CommonResult().success(orderCreateVo);
     }
-
 
     /**
      * 去支付，支付宝支付

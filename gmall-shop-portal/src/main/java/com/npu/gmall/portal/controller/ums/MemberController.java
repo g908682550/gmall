@@ -1,4 +1,4 @@
-package com.npu.gmall.portal.controller;
+package com.npu.gmall.portal.controller.ums;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.alibaba.fastjson.JSON;
@@ -51,6 +51,11 @@ public class MemberController {
         }
     }
 
+    /**
+     * 通过token获得用户的全量信息
+     * @param token
+     * @return
+     */
     @ResponseBody
     @GetMapping("/userinfo")
     public CommonResult getUserInfo(@RequestParam("accessToken") String token){

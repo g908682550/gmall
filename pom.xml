@@ -11,7 +11,6 @@
     <modules>
         <module>gmall-api</module>
         <module>gmall-common</module>
-        <module>gmall-mbg</module>
     </modules>
 
 
