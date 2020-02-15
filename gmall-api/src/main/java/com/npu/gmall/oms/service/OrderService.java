@@ -1,11 +1,14 @@
 package com.npu.gmall.oms.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.npu.gmall.oms.entity.Order;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.npu.gmall.oms.entity.OrderItem;
 import com.npu.gmall.vo.order.OrderConfirmVo;
 import com.npu.gmall.vo.order.OrderCreateVo;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,12 +26,9 @@ public interface OrderService extends IService<Order> {
 
     OrderCreateVo createOrder(BigDecimal totalPrice, Long addressId,String notes);
 
-    String pay(String orderSn, String accessToken);
+    Order selectOne(String order_sn);
 
-    /**
-     * 检查最终的支付结果
-     * @param params
-     * @return
-     */
-    String resolvePayResult(Map<String, String> params);
+    List<OrderItem> selectList(String orderSn);
+
+    void paySuccess(String out_trade_no);
 }

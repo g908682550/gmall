@@ -1,4 +1,4 @@
-package com.npu.gmall.oms.config;
+package com.npu.gmallpayment.config;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;

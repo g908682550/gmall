@@ -79,3 +79,8 @@ gmall-shop-portal/src/main/resources/templates/
 /gmall-admin-web/target/
 /gmall-demo/target/
 /gmall-oms/target/
+/gmall-payment/.mvn/
+/gmall-payment/.gitignore
+/gmall-payment/HELP.md
+/gmall-payment/mvnw
+/gmall-payment/mvnw.cmd
