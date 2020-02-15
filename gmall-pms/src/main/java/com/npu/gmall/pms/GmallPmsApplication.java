@@ -2,6 +2,7 @@ package com.npu.gmall.pms;
 
 import com.alibaba.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -37,6 +38,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @SpringBootApplication
 @MapperScan(basePackages ="com.npu.gmall.pms.mapper" )
 @EnableDubbo
+@EnableRabbit
 @EnableTransactionManagement
 public class GmallPmsApplication {
 

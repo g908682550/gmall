@@ -170,7 +170,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         //保存订单，数据库幂等，幂等字段需要唯一索引
         orderMapper.insert(order);
         //构造/保存订单项信息
-        saveOrderItem(order, accessToken);
+        saveOrderItem(order,accessToken);
         return orderCreateVo;
     }
 
@@ -182,7 +182,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      */
     @Override
     public Order selectOne(String order_sn) {
-        return orderMapper.selectOne(new QueryWrapper<Order>().eq("order_sn", order_sn));
+        return orderMapper.selectOne(new QueryWrapper<Order>().eq("order_sn",order_sn));
     }
 
     /**
@@ -209,7 +209,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         List<Long> skuIds = new ArrayList<>();
         cartItems.forEach(cartItem -> {
             OrderItem orderItem = new OrderItem();
-
             orderItem.setOrderId(order.getId());
             orderItem.setOrderSn(order.getOrderSn());
             Long skuId = cartItem.getSkuId();
@@ -245,18 +244,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             skuIds.add(orderItem.getProductSkuId());
         });
         //清除购物车中已经下单的商品
+        cartService.removeCartItem(accessToken,skuIds);
     }
 
-//    /**
-//     * 支付成功，修改数据库订单的状态
-//     * @param out_trade_no
-//     */
-//    @Override
-//    public void paySuccess(String out_trade_no) {
-//        Order order = new Order();
-//        order.setStatus(OrderStatusEnum.PAYED.getCode());
-//        orderMapper.update(order,new UpdateWrapper<Order>().eq("order_sn",out_trade_no));
-//    }
 
     /**
      * 订单创建的vo

@@ -57,12 +57,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Autowired
     ProductAttributeValueMapper productAttributeValueMapper;
 
-//    @Autowired
-//    ProductFullReductionMapper productFullReductionMapper;
-//
-//    @Autowired
-//    ProductLadderMapper productLadderMapper;
-
     @Autowired
     SkuStockMapper skuStockMapper;
 

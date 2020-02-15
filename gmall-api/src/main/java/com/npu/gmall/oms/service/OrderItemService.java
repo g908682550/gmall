@@ -3,7 +3,6 @@ package com.npu.gmall.oms.service;
 import com.npu.gmall.oms.entity.OrderItem;
 import com.baomidou.mybatisplus.extension.service.IService;
 
-import java.util.List;
 
 /**
  * <p>
