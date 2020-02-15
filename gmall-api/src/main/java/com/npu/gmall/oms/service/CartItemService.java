@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * 购物车表 服务类
  * </p>
  *
- * @author Lfy
+ * @author gy
  * @since 2020-01-02
  */
 public interface CartItemService extends IService<CartItem> {

@@ -2,7 +2,6 @@ package com.npu.gmall.portal.controller.payment;
 
 
 import com.alibaba.dubbo.config.annotation.Reference;
-import com.npu.gmall.oms.service.OrderService;
 import com.npu.gmall.payment.service.PaymentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @Slf4j
+@RequestMapping("/ali/pay")
 public class PaymentController {
 
     @Reference
@@ -26,7 +26,7 @@ public class PaymentController {
      * @return
      */
     @ResponseBody
-    @GetMapping(value = "/ali/pay",produces = {"text/html"})
+    @GetMapping(produces = {"text/html"})
     public String pay(@RequestParam("orderSn") String orderSn,
                       @RequestParam("accessToken") String accessToken){
         String string=PaymentService.pay(orderSn,accessToken);
@@ -37,7 +37,7 @@ public class PaymentController {
      * 接受支付宝的异步通知
      */
     @ResponseBody
-    @RequestMapping("/ali/pay/success/async")
+    @RequestMapping("success/async")
     public String paySuccess(HttpServletRequest request) throws UnsupportedEncodingException {
 
         log.debug("支付宝支付异步通知进来了....");
@@ -57,6 +57,7 @@ public class PaymentController {
             valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
             params.put(name, valueStr);
         }
+        //支付服务处理结果
         String result=PaymentService.resolvePayResult(params);
         return result;
     }

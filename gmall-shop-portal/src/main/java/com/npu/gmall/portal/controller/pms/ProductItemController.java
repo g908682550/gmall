@@ -60,7 +60,6 @@ public class ProductItemController {
     @GetMapping("/item/{id}.html")
     public EsProduct productInfo(@PathVariable("id") Long id){
         EsProduct esProduct=productService.productAllInfo(id);
-
         return esProduct;
     }
 

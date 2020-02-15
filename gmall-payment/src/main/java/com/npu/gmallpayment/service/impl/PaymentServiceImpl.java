@@ -11,8 +11,11 @@ import com.npu.gmall.oms.entity.Order;
 import com.npu.gmall.oms.entity.OrderItem;
 import com.npu.gmall.oms.service.OrderService;
 import com.npu.gmall.payment.service.PaymentService;
+import com.npu.gmall.vo.payment.PaymentInfo;
 import com.npu.gmallpayment.config.AlipayConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,6 +28,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Reference
     OrderService orderService;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     /**
      * 订单支付接口
@@ -87,9 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
         return result;// 支付跳转页的代码
-
     }
 
     /**
@@ -115,10 +119,12 @@ public class PaymentServiceImpl implements PaymentService {
         // 交易状态
         String trade_status =params.get("trade_status");
         if (trade_status.equals("TRADE_FINISHED")) {
+            rabbitTemplate.convertAndSend("payExchange","payEnd",new PaymentInfo(out_trade_no,"TRADE_FINISHED"));
             //改订单状态
             log.debug("订单【{}】,已经完成...不能再退款。数据库都改了",out_trade_no);
         } else if (trade_status.equals("TRADE_SUCCESS")) {
-            orderService.paySuccess(out_trade_no);
+            rabbitTemplate.convertAndSend("payExchange","payEnd",new PaymentInfo(out_trade_no,"TRADE_SUCCESS"));
+//            orderService.paySuccess(out_trade_no);
             log.debug("订单【{}】,已经支付成功...可以退款。数据库都改了",out_trade_no);
         }
         return "success";

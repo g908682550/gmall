@@ -30,5 +30,4 @@ public interface OrderService extends IService<Order> {
 
     List<OrderItem> selectList(String orderSn);
 
-    void paySuccess(String out_trade_no);
 }
