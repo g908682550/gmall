@@ -32,42 +32,42 @@ public class PmsProductAttributeCategoryController {
         return new CommonResult().success(pageInfoVo);
     }
 
-    @ApiOperation("添加商品属性分类")
-    @PostMapping(value = "/create")
-    public Object create(@RequestParam String name) {
-
-        //TODO 添加商品属性分类
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("修改商品属性分类")
-    @PostMapping(value = "/update/{id}")
-    public Object update(@PathVariable Long id, @RequestParam String name) {
-        //TODO 修改商品属性分类
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("删除单个商品属性分类")
-    @GetMapping(value = "/delete/{id}")
-    public Object delete(@PathVariable Long id) {
-        //TODO 删除单个商品属性分类
-        return new CommonResult().success(null);
-    }
-
-    @ApiOperation("获取单个商品属性分类信息")
-    @GetMapping(value = "/{id}")
-    public Object getItem(@PathVariable Long id) {
-        //TODO 获取单个商品属性分类信息
-        return new CommonResult().success(null);
-    }
-
-
-    @ApiOperation("获取所有商品属性分类及其下属性【难度较高】")
-    @RequestMapping(value = "/list/withAttr", method = RequestMethod.GET)
-    @ResponseBody
-    public Object getListWithAttr() {
-
-        //TODO 获取所有商品属性分类及其下属性
-        return new CommonResult().success(null);
-    }
+//    @ApiOperation("添加商品属性分类")
+//    @PostMapping(value = "/create")
+//    public Object create(@RequestParam String name) {
+//
+//        //TODO 添加商品属性分类
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("修改商品属性分类")
+//    @PostMapping(value = "/update/{id}")
+//    public Object update(@PathVariable Long id, @RequestParam String name) {
+//        //TODO 修改商品属性分类
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("删除单个商品属性分类")
+//    @GetMapping(value = "/delete/{id}")
+//    public Object delete(@PathVariable Long id) {
+//        //TODO 删除单个商品属性分类
+//        return new CommonResult().success(null);
+//    }
+//
+//    @ApiOperation("获取单个商品属性分类信息")
+//    @GetMapping(value = "/{id}")
+//    public Object getItem(@PathVariable Long id) {
+//        //TODO 获取单个商品属性分类信息
+//        return new CommonResult().success(null);
+//    }
+//
+//
+//    @ApiOperation("获取所有商品属性分类及其下属性【难度较高】")
+//    @RequestMapping(value = "/list/withAttr", method = RequestMethod.GET)
+//    @ResponseBody
+//    public Object getListWithAttr() {
+//
+//        //TODO 获取所有商品属性分类及其下属性
+//        return new CommonResult().success(null);
+//    }
 }

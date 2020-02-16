@@ -3,6 +3,8 @@ package com.npu.gmall.pms.mapper;
 import com.npu.gmall.pms.entity.ProductCategory;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.npu.gmall.vo.product.PmsProductCategoryWithChildrenItem;
+import org.apache.ibatis.annotations.ResultMap;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 

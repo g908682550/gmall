@@ -33,6 +33,7 @@ public class ProductCategoryServiceImpl extends ServiceImpl<ProductCategoryMappe
     @Autowired
     RedisTemplate<Object,Object> redisTemplate;
     /**
+     * 将菜单缓存起来，以后查询直接去缓存中拿即可
      * 分布式缓存用redis来做
      * @param i
      * @return

@@ -15,7 +15,7 @@ import java.math.BigDecimal;
  * sku的库存 服务实现类
  * </p>
  *
- * @author Lfy
+ * @author gy
  * @since 2020-01-02
  */
 @Service

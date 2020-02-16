@@ -65,107 +65,33 @@ public class SearchProductServiceImpl implements SearchProductService {
         return searchResponse;
     }
 
-    private SearchResponse buildSearchResponse(SearchResult execute) {
-
-        SearchResponse searchResponse = new SearchResponse();
-
-        MetricAggregation aggregations = execute.getAggregations();
-
-        //总数
-        searchResponse.setTotal(execute.getTotal());
-
-        //==================分析聚合品牌的信息
-        TermsAggregation brand_agg = aggregations.getTermsAggregation("brand_agg");
-        List<String> brandNames=new ArrayList<>();
-        brand_agg.getBuckets().forEach(bucket-> {
-            brandNames.add(bucket.getKeyAsString());
-        }
-        );
-        SearchResponseAttrVo brand_attrVo = new SearchResponseAttrVo();
-        brand_attrVo.setName("品牌");
-        brand_attrVo.setValue(brandNames);
-        searchResponse.setBrand(brand_attrVo);
-
-        //=================分析分类聚合信息
-        TermsAggregation category_agg = aggregations.getTermsAggregation("category_agg");
-
-        List<String> categoryValues=new ArrayList<>();
-
-        category_agg.getBuckets().forEach(bucket->{
-            String categoryName = bucket.getKeyAsString();
-            TermsAggregation categoryId_agg = bucket.getTermsAggregation("categoryId_agg");
-            String categoryId = categoryId_agg.getBuckets().get(0).getKeyAsString();
-            Map<String,String> map=new HashMap<>();
-            map.put("id",categoryId);
-            map.put("name", categoryName);
-            String cateInfo = JSON.toJSONString(map);
-            categoryValues.add(cateInfo);
-        });
-        SearchResponseAttrVo category_attrVo=new SearchResponseAttrVo();
-        category_attrVo.setName("分类");
-        category_attrVo.setValue(categoryValues);
-        searchResponse.setCatelog(category_attrVo);
-
-        //==============分析属性聚合信息
-        TermsAggregation attrName_agg = aggregations.getChildrenAggregation("attr_agg").getTermsAggregation("attrName_agg");
-        List<SearchResponseAttrVo> attrVoList=new ArrayList<>();
-        attrName_agg.getBuckets().forEach(bucket->{
-            SearchResponseAttrVo vo=new SearchResponseAttrVo();
-            //当前属性的名字
-            String attr_Name = bucket.getKeyAsString();
-            //属性的id
-            TermsAggregation attrId_agg = bucket.getTermsAggregation("attrId_agg");
-            String attrId = attrId_agg.getBuckets().get(0).getKeyAsString();
-            //属性的所涉及的所有值
-            List<String> attrValues=new ArrayList<>();
-            TermsAggregation attrValue_agg = bucket.getTermsAggregation("attrValue_agg");
-            attrValue_agg.getBuckets().forEach(attrValue->{
-                attrValues.add(attrValue.getKeyAsString());
-            });
-            vo.setName(attr_Name);
-            vo.setProductAttributeId(Long.parseLong(attrId));
-            vo.setValue(attrValues);
-            attrVoList.add(vo);
-        });
-        searchResponse.setAttrs(attrVoList);
-        //========================提取检索到的商品信息
-        List<SearchResult.Hit<EsProduct, Void>> hits = execute.getHits(EsProduct.class);
-        List<EsProduct> products=new ArrayList<>();
-        hits.forEach(hit->{
-            EsProduct source = hit.source;
-            //提取到高亮结果
-            String title = hit.highlight.get("skuProductInfos.skuTitle").get(0);
-            //设置高亮结果
-            source.setName(title);
-            products.add(source);
-        });
-        searchResponse.setProducts(products);
-
-        return searchResponse;
-    }
-
+    /**
+     * 根据检索参数创建dsl语句
+     * @param searchParam
+     * @return
+     */
     private String buildDsl(SearchParam searchParam) {
 
         SearchSourceBuilder builder = new SearchSourceBuilder();
 
         //1、查询
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
-            //1.1、检索
+        //1.1、检索
         if(!StringUtils.isEmpty(searchParam.getKeyword())){
             MatchQueryBuilder matchQuery = QueryBuilders.matchQuery("skuProductInfos.skuTitle", searchParam.getKeyword());
             NestedQueryBuilder nestedQuery = QueryBuilders.nestedQuery("skuProductInfos", matchQuery, ScoreMode.None);
             boolQuery.must(nestedQuery);
         }
-            //1.2、过滤
-            //按照3级分类的条件过滤
+        //1.2、过滤
+        //按照3级分类的条件过滤
         if(searchParam.getCatelog3()!=null&&searchParam.getCatelog3().length>0){
             boolQuery.filter(QueryBuilders.termsQuery("productCategoryId",searchParam.getCatelog3()));
         }
-            //按照品牌过滤
+        //按照品牌过滤
         if(searchParam.getBrand()!=null&&searchParam.getBrand().length>0){
             boolQuery.filter(QueryBuilders.termsQuery("brandName.keyword",searchParam.getBrand()));
         }
-                //1.2.1、按照属性过滤、按照品牌过滤、按照分类过滤
+        //1.2.1、按照属性过滤、按照品牌过滤、按照分类过滤
         if(searchParam.getProps()!=null&&searchParam.getProps().length>0){
             //按照所有的筛选属性进行过滤
             String[] props = searchParam.getProps();
@@ -248,4 +174,89 @@ public class SearchProductServiceImpl implements SearchProductService {
         }
         return builder.toString();
     }
+
+    /**
+     * 根据从es中查询的结果封装searchResponse对象
+     * @param execute
+     * @return
+     */
+    private SearchResponse buildSearchResponse(SearchResult execute) {
+
+        SearchResponse searchResponse = new SearchResponse();
+
+        MetricAggregation aggregations = execute.getAggregations();
+
+        //总数
+        searchResponse.setTotal(execute.getTotal());
+
+        //==================分析聚合品牌的信息
+        TermsAggregation brand_agg = aggregations.getTermsAggregation("brand_agg");
+        List<String> brandNames=new ArrayList<>();
+        brand_agg.getBuckets().forEach(bucket-> {
+            brandNames.add(bucket.getKeyAsString());
+        }
+        );
+        SearchResponseAttrVo brand_attrVo = new SearchResponseAttrVo();
+        brand_attrVo.setName("品牌");
+        brand_attrVo.setValue(brandNames);
+        searchResponse.setBrand(brand_attrVo);
+
+        //=================分析分类聚合信息
+        TermsAggregation category_agg = aggregations.getTermsAggregation("category_agg");
+
+        List<String> categoryValues=new ArrayList<>();
+
+        category_agg.getBuckets().forEach(bucket->{
+            String categoryName = bucket.getKeyAsString();
+            TermsAggregation categoryId_agg = bucket.getTermsAggregation("categoryId_agg");
+            String categoryId = categoryId_agg.getBuckets().get(0).getKeyAsString();
+            Map<String,String> map=new HashMap<>();
+            map.put("id",categoryId);
+            map.put("name", categoryName);
+            String cateInfo = JSON.toJSONString(map);
+            categoryValues.add(cateInfo);
+        });
+        SearchResponseAttrVo category_attrVo=new SearchResponseAttrVo();
+        category_attrVo.setName("分类");
+        category_attrVo.setValue(categoryValues);
+        searchResponse.setCatelog(category_attrVo);
+
+        //==============分析属性聚合信息
+        TermsAggregation attrName_agg = aggregations.getChildrenAggregation("attr_agg").getTermsAggregation("attrName_agg");
+        List<SearchResponseAttrVo> attrVoList=new ArrayList<>();
+        attrName_agg.getBuckets().forEach(bucket->{
+            SearchResponseAttrVo vo=new SearchResponseAttrVo();
+            //当前属性的名字
+            String attr_Name = bucket.getKeyAsString();
+            //属性的id
+            TermsAggregation attrId_agg = bucket.getTermsAggregation("attrId_agg");
+            String attrId = attrId_agg.getBuckets().get(0).getKeyAsString();
+            //属性的所涉及的所有值
+            List<String> attrValues=new ArrayList<>();
+            TermsAggregation attrValue_agg = bucket.getTermsAggregation("attrValue_agg");
+            attrValue_agg.getBuckets().forEach(attrValue->{
+                attrValues.add(attrValue.getKeyAsString());
+            });
+            vo.setName(attr_Name);
+            vo.setProductAttributeId(Long.parseLong(attrId));
+            vo.setValue(attrValues);
+            attrVoList.add(vo);
+        });
+        searchResponse.setAttrs(attrVoList);
+        //========================提取检索到的商品信息
+        List<SearchResult.Hit<EsProduct, Void>> hits = execute.getHits(EsProduct.class);
+        List<EsProduct> products=new ArrayList<>();
+        hits.forEach(hit->{
+            EsProduct source = hit.source;
+            //提取到高亮结果
+            String title = hit.highlight.get("skuProductInfos.skuTitle").get(0);
+            //设置高亮结果
+            source.setName(title);
+            products.add(source);
+        });
+        searchResponse.setProducts(products);
+
+        return searchResponse;
+    }
+
 }

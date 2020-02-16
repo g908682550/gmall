@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
  * 只需要自己创建出自己满意的序列化器放入容器中
  */
 @Configuration
-public class PmsRedisConfig {
+public class RedisConfig {
 
     @Bean(name = "redisTemplate")
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory)

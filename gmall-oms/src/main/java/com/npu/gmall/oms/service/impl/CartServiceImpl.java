@@ -47,7 +47,6 @@ public class CartServiceImpl implements CartService {
     @Autowired
     RedissonClient redissonClient;
 
-
     /**
      * 添加到购物车
      * @param skuId

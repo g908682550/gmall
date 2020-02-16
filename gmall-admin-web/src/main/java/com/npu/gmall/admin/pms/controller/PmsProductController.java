@@ -38,6 +38,16 @@ public class PmsProductController {
         return new CommonResult().success(pageInfoVo);
     }
 
+    @ApiOperation("创建商品")
+    @PostMapping(value = "/create")
+    public Object create(@RequestBody PmsProductParam productParam,
+                         BindingResult bindingResult) {
+        //TODO 查询所有一级分类及子分类
+        log.debug("将要保存的商品数据是:{}",productParam);
+        productService.saveProduct(productParam);
+        return new CommonResult().success(null);
+    }
+
     @ApiOperation("批量上下架")
     @PostMapping(value = "/update/publishStatus")
     public Object updatePublishStatus(@RequestParam("ids") List<Long> ids,
@@ -47,15 +57,6 @@ public class PmsProductController {
         return new CommonResult().success(null);
     }
 
-//    @ApiOperation("创建商品")
-//    @PostMapping(value = "/create")
-//    public Object create(@RequestBody PmsProductParam productParam,
-//                         BindingResult bindingResult) {
-//        //TODO 查询所有一级分类及子分类
-//        log.debug("将要保存的商品数据是:{}",productParam);
-//        productService.saveProduct(productParam);
-//        return new CommonResult().success(null);
-//    }
 //
 //    @ApiOperation("根据商品id获取商品编辑信息")
 //    @GetMapping(value = "/updateInfo/{id}")

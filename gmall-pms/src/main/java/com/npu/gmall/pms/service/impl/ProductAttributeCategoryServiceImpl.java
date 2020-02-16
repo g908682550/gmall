@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * 产品属性分类表 服务实现类
  * </p>
  *
- * @author Lfy
+ * @author gy
  * @since 2020-01-02
  */
 @Service

@@ -35,7 +35,6 @@ public class PmsProductAttributeController {
         //TODO 根据分类查询属性列表或参数列表
         //查出这个属性分类下的所有销售属性和基本参数
         PageInfoVo pageInfoVo=productAttributeService.getCategoryAttributes(cid,type,pageSize,pageNum);
-
         return new CommonResult().success(pageInfoVo);
     }
 

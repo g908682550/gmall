@@ -22,11 +22,11 @@
     <sql id="Base_Column_List">
         id, parent_id, name, level, product_count, product_unit, nav_status, show_status, sort, icon, keywords, description
     </sql>
-    
+    <!-- 继承BaseResultMap-->
     <resultMap id="ExtendResultMap" type="com.npu.gmall.vo.product.PmsProductCategoryWithChildrenItem" extends="BaseResultMap">
         <collection property="children" select="listCatelogWithChildren" column="id"></collection>
     </resultMap>
-    
+
     <select id="listCatelogWithChildren" resultMap="ExtendResultMap">
         select * from pms_product_category where parent_id=#{i}
     </select>

@@ -38,7 +38,5 @@ public class EsProduct implements Serializable {
 
 //    网络制式：3G 4G 5G，
 //    操作系统：Android IO)
-
-
-
+    
 }
