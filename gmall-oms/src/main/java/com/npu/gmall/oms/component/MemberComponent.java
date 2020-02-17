@@ -24,37 +24,4 @@ public class MemberComponent {
         Member member = JSON.parseObject(userJson, Member.class);
         return member;
     }
-
-    /**
-     * 获取到购物车的key
-     * @param accessToken
-     * @param cartKey
-     * @return
-     */
-    public UserCartKey getCartKey(String accessToken, String cartKey){
-
-        Member member=null;
-
-        if(!StringUtils.isEmpty(accessToken)){
-            member=getMemberByAccessToken(accessToken);
-        }
-        UserCartKey userCartKey = new UserCartKey();
-        if(member!=null){
-            //用户已经登录
-            userCartKey.setLogin(true);
-            userCartKey.setUserId(member.getId());
-            userCartKey.setFinalCartKey(CartConstant.USER_CART_KEY_PREFIX+member.getId());
-        }else if(!StringUtils.isEmpty(cartKey)){
-            //用户未登录但目前已有离线购物车
-            userCartKey.setLogin(false);
-            userCartKey.setFinalCartKey(CartConstant.TEMP_CART_KEY_PREFIX+cartKey);
-        }else{
-            //用户未登录且没有离线购物车
-            String replace = UUID.randomUUID().toString().replace("-", "");
-            userCartKey.setLogin(false);
-            userCartKey.setFinalCartKey(CartConstant.TEMP_CART_KEY_PREFIX+replace);
-            userCartKey.setTempCartKey(replace);
-        }
-        return userCartKey;
-    }
 }

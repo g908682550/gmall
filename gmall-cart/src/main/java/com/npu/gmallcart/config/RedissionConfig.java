@@ -1,4 +1,4 @@
-package com.npu.gmall.oms.config;
+package com.npu.gmallcart.config;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
