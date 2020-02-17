@@ -90,7 +90,7 @@ public class CartController {
     }
 
     /**
-     * 删除购物车
+     * 删除购物车某项
      * @param skuId
      * @param cartKey
      * @param accessToken

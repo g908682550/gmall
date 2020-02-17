@@ -31,9 +31,14 @@ public class SkuStockConsumer {
         try{
             skuStockInfos.forEach(skuStockInfo -> {
                 SkuStock skuStock=skuStockService.getById(skuStockInfo.getSkuId());
-                Integer num=skuStock.getLowStock()-skuStockInfo.getNum();
-                skuStock.setLowStock(num);
+                Integer num=skuStock.getStock()-skuStockInfo.getNum();
+                skuStock.setStock(num);
                 skuStockService.update(skuStock,new QueryWrapper<SkuStock>().eq("id",skuStockInfo.getSkuId()));
+                try {
+                    channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             });
         }catch (Exception e){
             channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,false);
