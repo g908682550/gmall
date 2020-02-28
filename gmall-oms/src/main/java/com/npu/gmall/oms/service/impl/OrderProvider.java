@@ -31,9 +31,17 @@ public class OrderProvider {
         List<OrderItem> orderItems=orderService.selectList(orderSn);
         List<SkuStockInfo> skuStockInfos=new ArrayList<>();
         orderItems.forEach(orderItem->{
-            skuStockInfos.add(new SkuStockInfo(orderItem.getProductSkuId(),orderItem.getProductQuantity()));
+            skuStockInfos.add(new SkuStockInfo(orderItem.getProductSkuId(),orderItem.getProductQuantity(),orderItem.getOrderSn()));
         });
         rabbitTemplate.convertAndSend("skuStockExchange","deleteSkuStock",skuStockInfos);
+    }
+
+    /**
+     * 所有订单都会先进入该队列，超过30分钟后自动将消息转发到其它交换机
+     * @param orderSn
+     */
+    public void sendOrderToDelayQueue(String orderSn){
+        rabbitTemplate.convertAndSend("user.order.delay.exchange","order_delay",orderSn);
     }
 
 }

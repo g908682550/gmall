@@ -5,11 +5,9 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.npu.gmall.oms.service.CartService;
-import com.npu.gmall.oms.service.OrderItemService;
 import com.npu.gmall.vo.cart.CartItem;
 import com.npu.gmall.constant.OrderStatusEnum;
 import com.npu.gmall.constant.SysCacheConstant;
@@ -82,8 +80,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     ThreadLocal<List<CartItem>> threadLocal = new ThreadLocal<>();
 
     /**
-     * 订单确认
-     *
+     * 订单确认完成下一步提交订单时需要进行防重验证
      * @param id
      * @return
      */
@@ -97,9 +94,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         //设置收货地址
         confirmVo.setAddresses(memberService.getMemberAddress(id));
-//
-//        //设置优惠券信息
-//        confirmVo.setCoupons(null);
 
         //设置购物项信息
         List<CartItem> cartItems = cartService.getCartItemForOrder(accessToken);
@@ -162,7 +156,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             orderCreateVo.setToken("比价失败");
             return orderCreateVo;
         }
-
         //根据订单信息创建订单Vo
         OrderCreateVo orderCreateVo = initOrderCreateVo(frontTotalPrice, addressId, accessToken, member);
         //初始化数据库订单信息
