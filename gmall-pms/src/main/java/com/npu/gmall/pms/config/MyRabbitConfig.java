@@ -20,7 +20,7 @@ public class MyRabbitConfig {
 
     @Bean
     public Queue createSkuStockQueue(){
-        return new Queue("skuStockqueue",true,false,false);
+        return new Queue("skuStockQueue",true,false,false);
     }
 
     @Bean
@@ -29,8 +29,18 @@ public class MyRabbitConfig {
     }
 
     @Bean
-    public Binding createBinding(){
-        return new Binding("skuStockqueue",Binding.DestinationType.QUEUE,"skuStockExchange","deleteSkuStock",null);
+    public Binding createDeductBinding(){
+        return new Binding("skuStockQueue",Binding.DestinationType.QUEUE,"skuStockExchange","deleteSkuStock",null);
+    }
+
+    @Bean
+    public Queue createSkuStockFinish(){
+        return new Queue("skuStockFinish",true,false,false);
+    }
+
+    @Bean
+    public Binding createFinishBinding(){
+        return new Binding("skuStockFinish", Binding.DestinationType.QUEUE,"skuStockExchange","orderFinsh",null);
     }
 
 }

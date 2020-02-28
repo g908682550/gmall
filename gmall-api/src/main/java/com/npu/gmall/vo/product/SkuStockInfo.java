@@ -16,5 +16,5 @@ public class SkuStockInfo implements Serializable {
      */
     Long skuId;
     Integer num;
-
+    String orderSn;
 }

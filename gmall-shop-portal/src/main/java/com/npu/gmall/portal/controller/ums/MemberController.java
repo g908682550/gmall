@@ -28,6 +28,7 @@ public class MemberController {
     @Reference
     MemberService memberService;
 
+
     @PostMapping("/applogin")
     @ResponseBody
     public CommonResult loginForGmall(@Valid UserMemberLoginParam userMemberLoginParam,BindingResult result){

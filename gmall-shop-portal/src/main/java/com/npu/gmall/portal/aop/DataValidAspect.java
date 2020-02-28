@@ -8,21 +8,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 
-/**
- * 切面如何编写
- * 1、导入切面场景
- * 2、编写切面
- *      1、@Aspect
- *      2、切入点表达式
- *      3、通知：
- *          前置通知：方法执行之前触发
- *          后置通知: 方法执行之后触发
- *          返回通知：方法正常返回之后触发
- *          异常通知：方法异常触发
- *       正常执行： 前置通知==》返回通知==》后置通知
- *       异常执行： 前置通知==》异常通知==》后置通知
- *          环绕通知：4合1;拦截方法的执行
- */
 //利用aop完成统一的数据校验，数据校验出错就返回给前端错误提示
 @Slf4j
 @Aspect

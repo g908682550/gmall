@@ -60,7 +60,7 @@ public class CartServiceImpl implements CartService {
         //0、根据accessToken获取用户的id
         Member member = memberComponent.getMemberByAccessToken(accessToken);
 
-        //cartkey不为空说明存在离线购物车，将在线及离线购物车进行合并
+        //用户存在且cartkey不为空说明存在离线购物车，将在线及离线购物车进行合并
         if(member!=null&&!StringUtils.isEmpty(cartKey)){
             mergeCart(cartKey,member.getId());
         }

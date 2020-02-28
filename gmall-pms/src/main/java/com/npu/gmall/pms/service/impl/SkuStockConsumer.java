@@ -7,6 +7,7 @@ import com.npu.gmall.vo.product.SkuStockInfo;
 import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +20,9 @@ public class SkuStockConsumer {
     @Autowired
     SkuStockService skuStockService;
 
+    @Autowired
+    SkuStockProvider skuStockProvider;
+
     /**
      * 监听到减库存的消息
      * @param message
@@ -26,7 +30,7 @@ public class SkuStockConsumer {
      * @param channel
      * @throws IOException
      */
-    @RabbitListener(queues = {"skuStockqueue"})
+    @RabbitListener(queues = {"skuStockQueue"})
     public void receiveSkuStockMessage(Message message, List<SkuStockInfo> skuStockInfos, Channel channel) throws IOException {
         try{
             skuStockInfos.forEach(skuStockInfo -> {
@@ -40,6 +44,8 @@ public class SkuStockConsumer {
                     e.printStackTrace();
                 }
             });
+            //扣减成功后给订单系统发送消息
+            skuStockProvider.sendOrderFinishInfo(skuStockInfos.get(0).getOrderSn());
         }catch (Exception e){
             channel.basicNack(message.getMessageProperties().getDeliveryTag(),false,false);
         }
