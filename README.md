@@ -31,7 +31,7 @@ Springboot+dubbo的模拟分布式商城微服务demo
 
 提供确认订单，创建订单等微服务
 
-4、gmall-payment
+5、gmall-payment
 
 提供支付功能模块
 

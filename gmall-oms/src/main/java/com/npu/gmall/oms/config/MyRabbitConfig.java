@@ -48,7 +48,7 @@ public class MyRabbitConfig {
         Map<String,Object> arguments=new HashMap<>();
 
         arguments.put("x-message-ttl",30*1000);
-        arguments.put("x-dead-letter-exchange","user.order.exchange");//消息死了去哪个交换机
+        arguments.put("x-dead-letter-exchange","user.orderTTL.exchange");//消息死了去哪个交换机
         arguments.put("x-dead-letter-routing-key","orderTTL");//死信发出去的路由键
 
         return new Queue("user.order.delay.queue",true,false,false);
